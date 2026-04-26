@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Loyalty Program — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card purple"><div class="stat-card-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-value" th:text="${loyaltyAccounts.size()}">0</div><div class="stat-label">Members</div></div>
+            </div>
+            <div class="col-6 col-xl-3" style="position:relative;">
+                <div class="stat-card yellow"><div class="stat-card-icon">🥉</div>
+                    <div class="stat-value" th:text="${bronzeCount}">0</div><div class="stat-label">Bronze</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card gray"><div class="stat-card-icon">🥈</div>
+                    <div class="stat-value" th:text="${silverCount}">0</div><div class="stat-label">Silver</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card yellow"><div class="stat-card-icon">🥇</div>
+                    <div class="stat-value" th:text="${goldCount}">0</div><div class="stat-label">Gold</div></div>
+            </div>
+        </div>
+
+        <!-- Tier Info Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="content-card" style="border-top:4px solid #cd7f32;">
+                    <div class="card-body-custom" style="text-align:center;">
+                        <div style="font-size:36px;margin-bottom:8px;">🥉</div>
+                        <h5 style="font-weight:800;color:#cd7f32;">Bronze</h5>
+                        <p style="font-size:12px;color:#6c757d;">0 – 499 points · Earn 1 point per $1</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="content-card" style="border-top:4px solid #9e9e9e;">
+                    <div class="card-body-custom" style="text-align:center;">
+                        <div style="font-size:36px;margin-bottom:8px;">🥈</div>
+                        <h5 style="font-weight:800;color:#9e9e9e;">Silver</h5>
+                        <p style="font-size:12px;color:#6c757d;">500 – 1999 points · Priority support</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="content-card" style="border-top:4px solid #ffc107;">
+                    <div class="card-body-custom" style="text-align:center;">
+                        <div style="font-size:36px;margin-bottom:8px;">🥇</div>
+                        <h5 style="font-weight:800;color:#e6a800;">Gold</h5>
+                        <p style="font-size:12px;color:#6c757d;">2000+ points · VIP benefits</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Table -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-trophy me-2" style="color:#6f42c1;"></i>Loyalty Members</h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>CUSTOMER</th><th>TIER</th><th>POINTS</th><th>TRANSACTIONS</th></tr></thead>
+                    <tbody>
+                        <tr th:each="lp : ${loyaltyAccounts}">
+                            <td><strong th:text="${lp.customerName}">Customer</strong></td>
+                            <td>
+                                <span th:text="${lp.tier}"
+                                      th:classappend="|${lp.tier == 'Gold'} ? ' tier-gold' : (${lp.tier == 'Silver'} ? ' tier-silver' : ' tier-bronze')|">Bronze</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="width:80px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+                                        <div th:style="|'width:' + ${lp.points != null and lp.points > 0 ? (#numbers.formatDecimal([T(java.lang.Math).min(lp.points / 2000.0 * 100, 100), 1, 0]) + '%;') : '0%;'} + 'height:100%;background:linear-gradient(90deg,#6f42c1,#a855f7);border-radius:4px;'|"></div>
+                                    </div>
+                                    <strong th:text="${lp.points} ?: 0">0</strong> pts
+                                </div>
+                            </td>
+                            <td th:text="${lp.transactions != null ? lp.transactions.size() : 0}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(loyaltyAccounts)}">
+                            <td colspan="4" style="text-align:center;padding:30px;color:#6c757d;">
+                                <i class="fas fa-star fa-2x mb-2" style="opacity:.3;display:block;"></i>
+                                No loyalty members yet. Points are awarded automatically when orders are completed.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

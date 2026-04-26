@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title th:text="${title} + ' — RestaurantPro'">Report</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h4 style="font-weight:800;margin:0;" th:text="${title}">Report</h4>
+                <p style="margin:0;color:#6c757d;font-size:13px;">
+                    Period: <span th:text="${startDate}">-</span> to <span th:text="${endDate}">-</span>
+                    · Generated: <span th:text="${#temporals.format(generatedAt,'dd MMM HH:mm')}">-</span>
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/reports" class="btn-primary-custom btn-info-custom"><i class="fas fa-arrow-left"></i> Back</a>
+                <button class="btn-primary-custom" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card green"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalSales ?: 0,1,2)}">0</span></div>
+                    <div class="stat-label">Total Revenue</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card purple"><div class="stat-card-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="stat-value" th:text="${completedOrders} ?: 0">0</div>
+                    <div class="stat-label">Completed Orders</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card yellow"><div class="stat-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalExpenses ?: 0,1,2)}">0</span></div>
+                    <div class="stat-label">Total Expenses</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(netProfit ?: 0,1,2)}">0</span></div>
+                    <div class="stat-label">Net Profit</div></div>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div th:if="${orders != null and !orders.isEmpty()}" class="content-card mb-4">
+            <div class="card-header-custom"><h5><i class="fas fa-receipt me-2" style="color:#6f42c1;"></i>Orders</h5></div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>ORDER #</th><th>CUSTOMER</th><th>TYPE</th><th>ITEMS</th><th>TAX</th><th>TOTAL</th><th>DATE</th></tr></thead>
+                    <tbody>
+                        <tr th:each="o : ${orders}">
+                            <td><strong style="color:#6f42c1;" th:text="${o.orderNumber}">-</strong></td>
+                            <td th:text="${o.customerName} ?: 'Walk-in'">-</td>
+                            <td th:text="${o.type}">-</td>
+                            <td th:text="${o.items != null ? o.items.size() : 0}">0</td>
+                            <td>$<span th:text="${#numbers.formatDecimal(o.taxAmount ?: 0,1,2)}">0</span></td>
+                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(o.totalAmount ?: 0,1,2)}">0</span></td>
+                            <td style="font-size:12px;color:#6c757d;" th:text="${#temporals.format(o.createdAt,'dd MMM HH:mm')} ?: '-'">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Expenses Table -->
+        <div th:if="${expenses != null and !expenses.isEmpty()}" class="content-card">
+            <div class="card-header-custom"><h5><i class="fas fa-file-invoice-dollar me-2" style="color:#6f42c1;"></i>Expenses</h5></div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>EXP #</th><th>CATEGORY</th><th>VENDOR</th><th>AMOUNT</th><th>DATE</th><th>STATUS</th></tr></thead>
+                    <tbody>
+                        <tr th:each="e : ${expenses}">
+                            <td th:text="${e.expenseNumber}">-</td>
+                            <td th:text="${e.category}">-</td>
+                            <td th:text="${e.vendor} ?: '—'">-</td>
+                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(e.amount ?: 0,1,2)}">0</span></td>
+                            <td th:text="${e.date}">-</td>
+                            <td><span class="badge-status" th:text="${e.status}" th:classappend="${e.status == 'Approved'} ? ' badge-approved' : ' badge-pending'">-</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

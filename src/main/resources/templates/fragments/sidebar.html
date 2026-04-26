@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<!-- ========================== SIDEBAR FRAGMENT ========================== -->
+<div th:fragment="sidebar" class="sidebar" id="sidebar">
+
+    <!-- Brand -->
+    <a href="/admin/dashboard" class="sidebar-brand text-decoration-none">
+        <div class="sidebar-brand-icon">🍽️</div>
+        <div class="sidebar-brand-text">
+            <h6>RestaurantPro</h6>
+            <small>Management System</small>
+        </div>
+    </a>
+
+    <!-- MAIN -->
+    <div class="sidebar-section">Main</div>
+    <a th:href="@{/admin/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-chart-pie"></i> Dashboard
+    </a>
+
+    <!-- OPERATIONS -->
+    <div class="sidebar-section">Operations</div>
+    <a th:href="@{/orders}" th:classappend="${activeMenu == 'orders'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-receipt"></i> Orders
+        <span class="nav-badge" id="sidebar-pending-count">0</span>
+    </a>
+    <a th:href="@{/pos}" th:classappend="${activeMenu == 'pos'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-cash-register"></i> POS
+    </a>
+    <a th:href="@{/kitchen}" th:classappend="${activeMenu == 'kitchen'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-fire"></i> Kitchen
+    </a>
+    <a th:href="@{/tables}" th:classappend="${activeMenu == 'tables'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-chair"></i> Tables
+    </a>
+    <a th:href="@{/riders}" th:classappend="${activeMenu == 'riders'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-motorcycle"></i> Riders
+    </a>
+
+    <!-- MANAGEMENT -->
+    <div class="sidebar-section">Management</div>
+    <a th:href="@{/menu}" th:classappend="${activeMenu == 'menu'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-utensils"></i> Menu
+    </a>
+    <a th:href="@{/customers}" th:classappend="${activeMenu == 'customers'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-users"></i> Customers
+    </a>
+    <a th:href="@{/staff}" th:classappend="${activeMenu == 'staff'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-user-tie"></i> Staff
+    </a>
+
+    <!-- FINANCE -->
+    <div class="sidebar-section">Finance</div>
+    <a th:href="@{/expenses}" th:classappend="${activeMenu == 'expenses'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-file-invoice-dollar"></i> Expenses
+    </a>
+    <a th:href="@{/accounts/chart}" th:classappend="${activeMenu == 'accounts'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-book"></i> Chart of Accounts
+    </a>
+    <a th:href="@{/reports}" th:classappend="${activeMenu == 'reports'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-chart-bar"></i> Reports
+    </a>
+
+    <!-- SETTINGS -->
+    <div class="sidebar-section">Settings</div>
+    <a th:href="@{/settings/content}" th:classappend="${activeMenu == 'settings'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-cog"></i> Content
+    </a>
+    <a th:href="@{/branches}" th:classappend="${activeMenu == 'branches'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-code-branch"></i> Branches
+    </a>
+    <a th:href="@{/settings/permissions}" class="nav-item-link">
+        <i class="fas fa-shield-alt"></i> Permissions
+    </a>
+    <a th:href="@{/settings/modifiers}" class="nav-item-link">
+        <i class="fas fa-sliders-h"></i> Modifiers
+    </a>
+    <a th:href="@{/settings/tax}" th:classappend="${activeMenu == 'tax'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-percent"></i> Tax Management
+    </a>
+
+    <!-- FEATURES -->
+    <div class="sidebar-section">Features</div>
+    <a th:href="@{/loyalty}" th:classappend="${activeMenu == 'loyalty'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-star"></i> Loyalty
+    </a>
+    <a href="#" class="nav-item-link">
+        <i class="fas fa-comment-dots"></i> Reviews
+    </a>
+    <a th:href="@{/inventory}" th:classappend="${activeMenu == 'inventory'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-boxes"></i> Inventory
+    </a>
+    <a th:href="@{/suppliers}" th:classappend="${activeMenu == 'suppliers'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-truck"></i> Suppliers
+    </a>
+    <a th:href="@{/attendance}" th:classappend="${activeMenu == 'attendance'} ? ' active' : ''"
+       class="nav-item-link">
+        <i class="fas fa-calendar-check"></i> Attendance
+    </a>
+
+    <!-- SYSTEM -->
+    <div class="sidebar-section">System</div>
+    <a href="#" class="nav-item-link">
+        <i class="fas fa-clipboard-list"></i> Audit Log
+    </a>
+    <a href="#" class="nav-item-link">
+        <i class="fas fa-tools"></i> System Settings
+    </a>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+        <i class="fas fa-globe"></i>
+        <span>English</span>
+        <span style="margin-left:auto;font-size:10px;opacity:.6;">v1.0.0</span>
+    </div>
+</div>
+</body>
+</html>

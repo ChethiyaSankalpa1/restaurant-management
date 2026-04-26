@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Suppliers — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <div th:if="${success}" class="alert-custom alert-success mb-3">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 style="font-weight:800;margin:0;">🚚 Suppliers Management</h4>
+            <div class="d-flex gap-2">
+                <button class="btn-primary-custom btn-info-custom" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                    <i class="fas fa-money-bill"></i> Record Payment
+                </button>
+                <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                    <i class="fas fa-plus"></i> Add Supplier
+                </button>
+            </div>
+        </div>
+
+        <!-- Suppliers Table -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-truck me-2" style="color:#6f42c1;"></i>Supplier Directory</h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>NAME</th><th>CONTACT</th><th>EMAIL</th><th>PHONE</th><th>ADDRESS</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                    <tbody>
+                        <tr th:each="s : ${suppliers}">
+                            <td><strong th:text="${s.name}">Supplier</strong></td>
+                            <td th:text="${s.contactPerson} ?: '—'">-</td>
+                            <td th:text="${s.email} ?: '—'">-</td>
+                            <td th:text="${s.phone} ?: '—'">-</td>
+                            <td th:text="${s.address} ?: '—'">-</td>
+                            <td><span class="badge-status" th:text="${s.status}" th:classappend="${s.status == 'active'} ? ' badge-active' : ' badge-inactive'">active</span></td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a th:href="@{/suppliers/{id}/payments(id=${s.id})}" class="btn-sm-action btn-sm-view" title="Payments">💳</a>
+                                    <form th:action="@{/suppliers/delete/{id}(id=${s.id})}" method="post" style="display:inline;">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn-sm-action btn-sm-delete" onclick="return confirm('Delete?')"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(suppliers)}">
+                            <td colspan="7" style="text-align:center;padding:30px;color:#6c757d;">No suppliers added yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-money-bill-wave me-2" style="color:#6f42c1;"></i>Recent Payments</h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>SUPPLIER</th><th>AMOUNT</th><th>DATE</th><th>METHOD</th><th>STATUS</th></tr></thead>
+                    <tbody>
+                        <tr th:each="p : ${payments}">
+                            <td th:text="${p.supplierName} ?: '—'">-</td>
+                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(p.amount ?: 0,1,2)}">0</span></td>
+                            <td th:text="${p.date}">-</td>
+                            <td th:text="${p.paymentMethod} ?: 'Cash'">Cash</td>
+                            <td><span class="badge-status badge-paid" th:text="${p.status} ?: 'Paid'">Paid</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(payments)}">
+                            <td colspan="5" style="text-align:center;padding:20px;color:#6c757d;">No payments recorded.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 style="font-weight:700;margin:0;">Add Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/suppliers/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="row g-3">
+                        <div class="col-12"><label class="form-label-custom">Company Name *</label>
+                            <input type="text" name="name" class="form-control-custom" required/></div>
+                        <div class="col-6"><label class="form-label-custom">Contact Person</label>
+                            <input type="text" name="contactPerson" class="form-control-custom"/></div>
+                        <div class="col-6"><label class="form-label-custom">Phone</label>
+                            <input type="text" name="phone" class="form-control-custom"/></div>
+                        <div class="col-12"><label class="form-label-custom">Email</label>
+                            <input type="email" name="email" class="form-control-custom"/></div>
+                        <div class="col-12"><label class="form-label-custom">Address</label>
+                            <input type="text" name="address" class="form-control-custom"/></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Save Supplier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 style="font-weight:700;margin:0;">Record Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/suppliers/payment/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="row g-3">
+                        <div class="col-12"><label class="form-label-custom">Supplier *</label>
+                            <select name="supplierId" class="form-control-custom" required>
+                                <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}">Supplier</option>
+                            </select>
+                        </div>
+                        <div class="col-6"><label class="form-label-custom">Amount *</label>
+                            <input type="number" name="amount" class="form-control-custom" step="0.01" required/></div>
+                        <div class="col-6"><label class="form-label-custom">Date *</label>
+                            <input type="date" name="date" class="form-control-custom" required/></div>
+                        <div class="col-6"><label class="form-label-custom">Payment Method</label>
+                            <select name="paymentMethod" class="form-control-custom">
+                                <option>Cash</option><option>Bank Transfer</option><option>Card</option>
+                            </select>
+                        </div>
+                        <div class="col-6"><label class="form-label-custom">Reference</label>
+                            <input type="text" name="reference" class="form-control-custom"/></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

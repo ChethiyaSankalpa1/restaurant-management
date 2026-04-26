@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Tables — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <!-- CSRF Token for AJAX -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <div th:if="${success}" class="alert-custom alert-success mb-3">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card purple">
+                    <div class="stat-card-icon"><i class="fas fa-chair"></i></div>
+                    <div class="stat-value" th:text="${totalCount}">0</div>
+                    <div class="stat-label">Total Tables</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card green">
+                    <div class="stat-card-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value" th:text="${availableCount}">0</div>
+                    <div class="stat-label">Available</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card yellow">
+                    <div class="stat-card-icon"><i class="fas fa-utensils"></i></div>
+                    <div class="stat-value" th:text="${occupiedCount}">0</div>
+                    <div class="stat-label">Occupied</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card cyan">
+                    <div class="stat-card-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-value" th:text="${reservedCount}">0</div>
+                    <div class="stat-label">Reserved</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h5 style="font-weight:800;margin:0;">Table Layout</h5>
+            <div class="d-flex gap-2">
+                <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addTableModal">
+                    <i class="fas fa-plus me-1"></i> Add Table
+                </button>
+                <button class="btn-primary-custom btn-info-custom" data-bs-toggle="modal" data-bs-target="#reservationModal">
+                    <i class="fas fa-calendar-plus me-1"></i> Add Reservation
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Grid -->
+        <div class="row g-3 mb-4">
+            <div th:each="table : ${tables}" th:if="${table != null}" class="col-6 col-md-4 col-xl-3">
+                <div class="table-card"
+                     th:classappend="|${table.status == 'Available'} ? ' available' : (${table.status == 'Occupied'} ? ' occupied' : ' reserved')|">
+                    <!-- QR Code -->
+                    <div style="float:right;">
+                        <img th:if="${table.qrCode != null and !table.qrCode.isEmpty()}"
+                             th:src="${table.qrCode}" class="qr-img" th:alt="|QR ${table.tableNumber}|"/>
+                    </div>
+                    <div class="table-number">T<span th:text="${table.tableNumber}">1</span></div>
+                    <div style="font-size:13px;color:#6c757d;margin-bottom:8px;">
+                        <i class="fas fa-users me-1"></i><span th:text="${table.capacity}">4</span> seats
+                        · <span th:text="${table.location} ?: 'Indoor'">Indoor</span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="badge-status"
+                              th:text="${table.status}"
+                              th:classappend="|${table.status == 'Available'} ? ' badge-available' : (${table.status == 'Occupied'} ? ' badge-occupied' : ' badge-reserved')|">Status</span>
+                    </div>
+                    <!-- Status Actions -->
+                    <div class="d-flex gap-1 justify-content-center flex-wrap">
+                        <form th:action="@{/tables/{id}/status(id=${table.id})}" method="post" style="display:contents">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        </form>
+                        <button th:data-id="${table.id}" data-status="Available"
+                                class="btn-sm-action btn-sm-success table-action-btn" title="Available">✅</button>
+                        <button th:data-id="${table.id}" data-status="Occupied"
+                                class="btn-sm-action btn-sm-edit table-action-btn" title="Occupied">🪑</button>
+                        <button th:data-id="${table.id}" data-status="Reserved"
+                                class="btn-sm-action btn-sm-view table-action-btn" title="Reserved">📅</button>
+                        <form th:action="@{/tables/delete/{id}(id=${table.id})}" method="post" style="display:inline;">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                            <button type="submit" class="btn-sm-action btn-sm-delete" onclick="return confirm('Delete this table?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reservations Table -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-calendar-alt me-2" style="color:#6f42c1;"></i>Upcoming Reservations</h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>CUSTOMER</th><th>TABLE</th><th>DATE</th><th>TIME</th><th>GUESTS</th><th>STATUS</th></tr></thead>
+                    <tbody>
+                        <tr th:each="r : ${reservations}">
+                            <td th:text="${r.customerName}">-</td>
+                            <td th:text="|Table ${r.tableNumber}|">-</td>
+                            <td th:text="${r.date}">-</td>
+                            <td th:text="${r.time}">-</td>
+                            <td th:text="${r.guestCount}">-</td>
+                            <td><span class="badge-status badge-reserved" th:text="${r.status} ?: 'Confirmed'">Confirmed</span></td>
+                        </tr>
+                        <tr th:if="${reservations == null or #lists.isEmpty(reservations)}">
+                            <td colspan="6" style="text-align:center;padding:20px;color:#6c757d;">No reservations yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Add Table Modal -->
+<div class="modal fade" id="addTableModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 class="modal-title" style="font-weight:700;">Add Table</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/tables/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" th:name="id" th:value="${newTable.id}"/>
+                <div class="modal-body" style="padding:24px;">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label-custom">Table Number</label>
+                            <input type="text" name="tableNumber" class="form-control-custom" placeholder="T1" required/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Capacity</label>
+                            <input type="number" name="capacity" class="form-control-custom" min="1" placeholder="4" required/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Location</label>
+                            <select name="location" class="form-control-custom">
+                                <option>Indoor</option><option>Outdoor</option><option>VIP</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Branch</label>
+                            <input type="text" name="branch" class="form-control-custom" value="Main Branch"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:14px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Save Table</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reservation Modal -->
+<div class="modal fade" id="reservationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 class="modal-title" style="font-weight:700;">Add Reservation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/tables/reservation/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body" style="padding:24px;">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label-custom">Customer Name</label>
+                            <input type="text" name="customerName" class="form-control-custom" required/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Phone</label>
+                            <input type="text" name="phone" class="form-control-custom"/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Guest Count</label>
+                            <input type="number" name="guestCount" class="form-control-custom" min="1"/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Date</label>
+                            <input type="date" name="date" class="form-control-custom" required/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Time</label>
+                            <input type="time" name="time" class="form-control-custom" required/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Table Number</label>
+                            <select name="tableNumber" class="form-control-custom">
+                                <option th:each="t : ${tables}" th:value="${t.tableNumber}" th:text="|Table ${t.tableNumber}|">T1</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:14px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Save Reservation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+$(function() {
+    const token = $("meta[name='_csrf']").attr("content");
+    const header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function(e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    });
+});
+
+$(document).on('click', '.table-action-btn', function() {
+    changeTableStatus(this.dataset.id, this.dataset.status);
+});
+
+function changeTableStatus(tableId, status) {
+    $.post('/tables/' + tableId + '/status', { status: status }, (data) => {
+        if (data.success) location.reload();
+    });
+}
+</script>
+</body>
+</html>

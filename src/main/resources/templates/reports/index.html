@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Reports — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card purple"><div class="stat-card-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalSales ?: 0,1,2)}">0</span></div><div class="stat-label">Total Sales</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="stat-value" th:text="${totalOrders} ?: 0">0</div><div class="stat-label">Total Orders</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card yellow"><div class="stat-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalExpenses ?: 0,1,2)}">0</span></div><div class="stat-label">Total Expenses</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card green"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(netProfit ?: 0,1,2)}">0</span></div><div class="stat-label">Net Profit</div></div>
+            </div>
+        </div>
+
+        <!-- Report Generator -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-sliders-h me-2" style="color:#6f42c1;"></i>Generate Report</h5>
+            </div>
+            <div class="card-body-custom">
+                <form th:action="@{/reports/generate}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label-custom">Report Type</label>
+                        <select name="type" class="form-control-custom" required>
+                            <optgroup label="Sales">
+                                <option value="SALES">Sales Report</option>
+                                <option value="PROFIT_LOSS">Profit &amp; Loss</option>
+                            </optgroup>
+                            <optgroup label="Operations">
+                                <option value="EXPENSE">Expense Report</option>
+                                <option value="INVENTORY">Inventory Report</option>
+                                <option value="RIDER_PERFORMANCE">Rider Performance</option>
+                            </optgroup>
+                            <optgroup label="HR">
+                                <option value="PAYROLL">Payroll Report</option>
+                                <option value="ATTENDANCE">Attendance Report</option>
+                                <option value="CUSTOMER">Customer Report</option>
+                            </optgroup>
+                            <optgroup label="Accounting">
+                                <option value="TRIAL_BALANCE">Trial Balance</option>
+                                <option value="BALANCE_SHEET">Balance Sheet</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-custom">Start Date</label>
+                        <input type="date" name="startDate" class="form-control-custom" required/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-custom">End Date</label>
+                        <input type="date" name="endDate" class="form-control-custom" required/>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn-primary-custom w-100 justify-content-center">
+                            <i class="fas fa-chart-bar"></i> Generate
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Report Cards -->
+        <div class="row g-3">
+            <div th:each="report : ${ {'SALES:Sales Report:fas fa-chart-line:#6f42c1',
+                                       'PROFIT_LOSS:Profit & Loss:fas fa-balance-scale:#28a745',
+                                       'EXPENSE:Expense Report:fas fa-file-invoice-dollar:#dc3545',
+                                       'INVENTORY:Inventory Report:fas fa-boxes:#17a2b8',
+                                       'PAYROLL:Payroll Report:fas fa-money-bill-wave:#ffc107',
+                                       'CUSTOMER:Customer Report:fas fa-users:#6f42c1',
+                                       'ATTENDANCE:Attendance Report:fas fa-calendar-check:#28a745',
+                                       'RIDER_PERFORMANCE:Rider Performance:fas fa-motorcycle:#17a2b8'}}">
+                <div th:each="report : ${reportTypes}" class="col-md-6 col-xl-3"
+                     th:with="iconKey=${#strings.substringBetween(report,':',':')}, iconClass=${iconKey.contains('balance') ? 'fas fa-balance-scale' : iconKey.replace(' ','.')}">
+                    <a th:href="@{/reports/generate(type=${#strings.substringBefore(report,':')},startDate=${#dates.format(new java.util.Date(new java.util.Date().getTime() - 2592000000L),'yyyy-MM-dd')},endDate=${#dates.format(new java.util.Date(),'yyyy-MM-dd')})}"
+                       style="text-decoration:none;">
+                        <div class="content-card" style="padding:20px;transition:all .3s;display:flex;align-items:center;gap:16px;"
+                             onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 25px rgba(111,66,193,.2)'"
+                             onmouseout="this.style.transform='';this.style.boxShadow=''">
+                            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#6f42c1,#a855f7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0;">
+                                <i th:class="${iconClass}">
+                                </i>
+                            </div>
+                            <div>
+                                <div style="font-size:14px;font-weight:700;color:#2d3748;" th:text="${report.split(':')[1]}">Report</div>
+                                <div style="font-size:11px;color:#6c757d;">Last 30 days</div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="margin-left:auto;color:#6c757d;font-size:12px;"></i>
+                        </div>
+                    </a>
+                </div>
+                        <i class="fas fa-chevron-right" style="margin-left:auto;color:#6c757d;font-size:12px;"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+// Set default dates
+const today = new Date().toISOString().split('T')[0];
+const monthAgo = new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
+document.querySelector('input[name="endDate"]').value = today;
+document.querySelector('input[name="startDate"]').value = monthAgo;
+</script>
+</body>
+</html>

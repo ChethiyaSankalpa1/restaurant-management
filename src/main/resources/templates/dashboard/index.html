@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title th:text="|${pageTitle} — RestaurantPro|">Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert-custom alert-success mb-4">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <!-- Period Filter -->
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div>
+                <h4 style="margin:0;font-weight:800;color:#2d3748;">📊 Dashboard Overview</h4>
+                <p style="margin:0;color:#6c757d;font-size:13px;">Real-time restaurant performance metrics</p>
+            </div>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <a th:href="@{/admin/dashboard(period='today')}" th:classappend="${activePeriod == 'today'} ? ' active' : ''" class="period-btn">📅 Today</a>
+                <a th:href="@{/admin/dashboard(period='week')}" th:classappend="${activePeriod == 'week'} ? ' active' : ''" class="period-btn">📆 Week</a>
+                <a th:href="@{/admin/dashboard(period='month')}" th:classappend="${activePeriod == 'month'} ? ' active' : ''" class="period-btn">🗓️ Month</a>
+                <span id="auto-refresh-indicator" style="font-size:12px;color:#6c757d;" class="d-flex align-items-center gap-1">
+                    <span class="spinner-custom" style="width:12px;height:12px;border-width:2px;"></span> Auto-refresh: 30s
+                </span>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card purple">
+                    <div class="stat-card-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="stat-value" th:text="${totalOrders} ?: 0">0</div>
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-change up"><i class="fas fa-arrow-up"></i> All time orders</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card green">
+                    <div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-value">$<span th:text="${totalRevenue} ?: 0">0</span></div>
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-change up"><i class="fas fa-arrow-up"></i> Completed orders</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card cyan">
+                    <div class="stat-card-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" th:text="${uniqueCustomers} ?: 0">0</div>
+                    <div class="stat-label">Unique Customers</div>
+                    <div class="stat-change up"><i class="fas fa-arrow-up"></i> Active customers</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card yellow">
+                    <div class="stat-card-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-value">$<span th:text="${avgOrderValue} ?: 0">0</span></div>
+                    <div class="stat-label">Avg Order Value</div>
+                    <div class="stat-change up"><i class="fas fa-arrow-up"></i> Per order</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Order Status Breakdown -->
+            <div class="col-xl-4">
+                <div class="content-card h-100">
+                    <div class="card-header-custom">
+                        <h5><i class="fas fa-list-alt me-2" style="color:#6f42c1;"></i>Order Status Breakdown</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div th:each="entry : ${statusBreakdown}">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width:10px;height:10px;border-radius:50%;background:
+                                        /*[[ ${entry.key == 'Completed' ? '#28a745' : entry.key == 'Pending' ? '#ffc107' : entry.key == 'Preparing' ? '#6f42c1' : entry.key == 'Ready' ? '#17a2b8' : '#dc3545'} ]]*/
+                                        #6f42c1;"></div>
+                                    <span style="font-size:13.5px;font-weight:600;" th:text="${entry.key}">Status</span>
+                                </div>
+                                <span style="font-size:16px;font-weight:800;" th:text="${entry.value}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Type Breakdown -->
+            <div class="col-xl-4">
+                <div class="content-card h-100">
+                    <div class="card-header-custom">
+                        <h5><i class="fas fa-pizza-slice me-2" style="color:#6f42c1;"></i>Order Type Breakdown</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div th:each="entry : ${typeBreakdown}"
+                     th:with="iconClass=${entry.key == 'DineIn' ? 'fa-chair' : entry.key == 'Takeaway' ? 'fa-shopping-bag' : 'fa-motorcycle'}">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i th:class="${iconClass}"
+                                       class="fas" style="color:#6f42c1;width:16px;"></i>
+                                    <span style="font-size:13.5px;font-weight:600;" th:text="${entry.key}">Type</span>
+                                </div>
+                                <span style="font-size:16px;font-weight:800;color:#6f42c1;" th:text="${entry.value}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Alerts -->
+            <div class="col-xl-4">
+                <div class="content-card h-100">
+                    <div class="card-header-custom">
+                        <h5><i class="fas fa-exclamation-triangle me-2" style="color:#ffc107;"></i>Low Inventory Alerts
+                            <span class="badge bg-danger ms-1" th:text="${alertCount} ?: 0">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div th:if="${inventoryAlerts == null or #lists.isEmpty(inventoryAlerts)}">
+                            <div style="text-align:center;padding:20px;color:#6c757d;">
+                                <i class="fas fa-check-circle fa-2x" style="color:#28a745;margin-bottom:8px;display:block;"></i>
+                                All stock levels are healthy!
+                            </div>
+                        </div>
+                        <div th:each="alert : ${inventoryAlerts}" class="d-flex align-items-center gap-2 mb-3 p-2"
+                             style="background:#fff3cd;border-radius:8px;border-left:3px solid #ffc107;">
+                            <i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;" th:text="${alert.productName}">Product</div>
+                                <div style="font-size:11.5px;color:#856404;">
+                                    Stock: <strong th:text="${alert.currentStock}">0</strong> / Min: <strong th:text="${alert.minStock}">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-xl-8">
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h5><i class="fas fa-chart-line me-2" style="color:#6f42c1;"></i>Daily Sales Trend (Last 7 Days)</h5>
+                        <span style="font-size:12px;color:#6c757d;">Revenue from completed orders</span>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h5><i class="fas fa-chart-pie me-2" style="color:#6f42c1;"></i>Quick Stats</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-2" style="background:#f3e8ff;border-radius:10px;">
+                            <span style="font-size:13px;font-weight:600;">🟡 Pending Orders</span>
+                            <strong style="color:#6f42c1;" th:text="${statusBreakdown?.get('Pending')} ?: 0">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-2" style="background:#d1fae5;border-radius:10px;">
+                            <span style="font-size:13px;font-weight:600;">✅ Completed Today</span>
+                            <strong style="color:#28a745;" th:text="${statusBreakdown?.get('Completed')} ?: 0">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-2" style="background:#dbeafe;border-radius:10px;">
+                            <span style="font-size:13px;font-weight:600;">🔥 In Kitchen</span>
+                            <strong style="color:#1e40af;" th:text="${statusBreakdown?.get('Preparing')} ?: 0">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center p-3" style="background:#f8d7da;border-radius:10px;">
+                            <span style="font-size:13px;font-weight:600;">⚠️ Alerts</span>
+                            <strong style="color:#dc3545;" th:text="${alertCount} ?: 0">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-clock me-2" style="color:#6f42c1;"></i>Recent Orders</h5>
+                <a href="/orders" class="btn-primary-custom" style="font-size:12px;padding:6px 14px;">View All</a>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>ORDER #</th><th>CUSTOMER</th><th>TYPE</th><th>STATUS</th>
+                            <th>PAYMENT</th><th>TOTAL</th><th>DATE</th><th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${recentOrders}">
+                            <td><strong style="color:#6f42c1;" th:text="${order.orderNumber}">ORD-001</strong></td>
+                            <td th:text="${order.customerName} ?: 'Walk-in'">Customer</td>
+                            <td>
+                                <span th:text="${order.type}"
+                                  th:classappend="${order.type == 'DineIn'} ? 'badge-dinein' : (${order.type == 'Takeaway'} ? 'badge-takeaway' : 'badge-delivery')"
+                                  class="badge-status">Type</span>
+                            </td>
+                            <td>
+                                <span th:text="${order.status}"
+                                  th:classappend="${order.status == 'Completed'} ? 'badge-completed' : (${order.status == 'Pending'} ? 'badge-pending' : (${order.status == 'Preparing'} ? 'badge-preparing' : (${order.status == 'Ready'} ? 'badge-ready' : 'badge-cancelled')))"
+                                  class="badge-status">Status</span>
+                            </td>
+                            <td>
+                                <span th:text="${order.paymentStatus}"
+                                      th:classappend="${order.paymentStatus == 'Paid'} ? 'badge-paid' : 'badge-pending'"
+                                      class="badge-status">Payment</span>
+                            </td>
+                            <td class="text-money">$<span th:text="${order.totalAmount} ?: '0.00'">0.00</span></td>
+                            <td style="font-size:12px;color:#6c757d;" th:text="${#temporals.format(order.createdAt, 'dd MMM HH:mm')} ?: '-'">Date</td>
+                            <td>
+                                <a th:href="@{/orders/{id}(id=${order.id})}" class="btn-sm-action btn-sm-view">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${recentOrders == null or #lists.isEmpty(recentOrders)}">
+                            <td colspan="8" style="text-align:center;padding:30px;color:#6c757d;">No orders yet. Start by creating an order in POS.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /page-content -->
+</div><!-- /main-content -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script th:inline="javascript">
+const salesLabels = /*[[${salesLabels}]]*/ [];
+const salesData = /*[[${salesData}]]*/ [];
+
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: salesLabels,
+        datasets: [{
+            label: 'Revenue ($)',
+            data: salesData,
+            borderColor: '#6f42c1',
+            backgroundColor: 'rgba(111,66,193,0.12)',
+            borderWidth: 3,
+            pointBackgroundColor: '#6f42c1',
+            pointRadius: 5,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+    }
+});
+
+// Auto-refresh every 30 seconds
+let countdown = 30;
+setInterval(() => {
+    countdown--;
+    document.getElementById('auto-refresh-indicator').innerHTML =
+        '<span class="spinner-custom" style="width:12px;height:12px;border-width:2px;"></span> Auto-refresh: ' + countdown + 's';
+    if (countdown <= 0) {
+        countdown = 30;
+        $.get('/admin/dashboard/stats?period=' + /*[[${activePeriod}]]*/ 'today', function(data) {
+            // Update stat values
+            location.reload();
+        });
+    }
+}, 1000);
+</script>
+</body>
+</html>

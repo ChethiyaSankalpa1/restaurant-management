@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Kitchen — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <!-- CSRF Token for AJAX -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <!-- Filter Tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a th:href="@{/kitchen(filter='all')}" th:classappend="${activeFilter=='all'} ? ' active' : ''" class="period-btn">
+                    🍳 All Orders
+                </a>
+                <a th:href="@{/kitchen(filter='online')}" th:classappend="${activeFilter=='online'} ? ' active' : ''" class="period-btn">
+                    🌐 Online
+                </a>
+                <a th:href="@{/kitchen(filter='physical')}" th:classappend="${activeFilter=='physical'} ? ' active' : ''" class="period-btn">
+                    🏪 Physical
+                </a>
+                <a th:href="@{/kitchen(filter='complete')}" th:classappend="${activeFilter=='complete'} ? ' active' : ''" class="period-btn">
+                    ✅ Ready
+                </a>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span id="kitchen-countdown" style="font-size:13px;color:#6c757d;background:#fff;padding:6px 14px;border-radius:8px;border:1px solid #e2e8f0;">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh: 10s
+                </span>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card yellow">
+                    <div class="stat-card-icon"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="stat-value" th:text="${pendingCount}">0</div>
+                    <div class="stat-label">Pending Orders</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card purple">
+                    <div class="stat-card-icon"><i class="fas fa-fire"></i></div>
+                    <div class="stat-value" th:text="${preparingCount}">0</div>
+                    <div class="stat-label">Preparing</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card green">
+                    <div class="stat-card-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value" th:text="${readyCount}">0</div>
+                    <div class="stat-label">Ready</div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card cyan">
+                    <div class="stat-card-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="stat-value"><span th:text="${onTimeRate}">0</span>%</div>
+                    <div class="stat-label">On-Time Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kitchen Order Cards -->
+        <div class="row g-3" id="kitchenGrid">
+            <div th:if="${#lists.isEmpty(orders)}" class="col-12">
+                <div style="text-align:center;padding:60px;color:#6c757d;background:#fff;border-radius:16px;border:2px dashed #e2e8f0;">
+                    <i class="fas fa-utensils fa-3x mb-3" style="opacity:.3;display:block;"></i>
+                    <h5>No active orders</h5>
+                    <p style="font-size:13px;">New orders will appear here automatically</p>
+                </div>
+            </div>
+
+            <div th:each="order : ${orders}" class="col-md-6 col-xl-4">
+                <div class="kitchen-card"
+                     th:classappend="|${order.status == 'Pending'} ? ' border-warning' : (${order.status == 'Ready'} ? ' border-success' : '')|">
+                    <!-- Card Header -->
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+                        <div>
+                            <div style="font-size:17px;font-weight:900;color:#4a235a;" th:text="${order.orderNumber}">ORD-001</div>
+                            <div style="font-size:12px;color:#6c757d;" th:text="|${order.type} · ${order.customerName ?: 'Walk-in'}|">DineIn</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="order-timer" id="timer_" th:id="|timer_${order.id}|"
+                                 th:data-created="${order.createdAt}">00:00</div>
+                            <span class="badge-status"
+                                  th:text="${order.source}"
+                                  th:classappend="${order.source == 'Online'} ? ' badge-online' : ' badge-physical'">Source</span>
+                        </div>
+                    </div>
+
+                    <!-- Items -->
+                    <div style="background:#f8f9ff;border-radius:10px;padding:10px;margin-bottom:12px;">
+                        <div th:each="item : ${order.items}" class="d-flex align-items-center justify-content-between mb-1">
+                            <span style="font-size:13px;font-weight:600;" th:text="${item.quantity} + 'x ' + ${item.name}">1x Item</span>
+                            <span class="kitchen-item-badge"
+                                  th:text="${item.status ?: 'Pending'}"
+                                  th:style="|${item.status == 'Ready'} ? 'background:#d4edda;color:#155724;' : (${item.status == 'Preparing'} ? 'background:#e8deff;color:#6f42c1;' : 'background:#fff3cd;color:#856404;')|">Pending</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                        <div style="font-size:13px;font-weight:700;color:#28a745;">
+                            $<span th:text="${order.totalAmount} ?: '0.00'">0.00</span>
+                        </div>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn-sm-action btn-sm-view" title="Add Notes"><i class="fas fa-sticky-note"></i></button>
+                            <button class="btn-sm-action btn-sm-edit" title="Print" onclick="window.print()"><i class="fas fa-print"></i></button>
+                            <!-- Status Action Button -->
+                            <button th:if="${order.status == 'Pending'}"
+                                    class="btn-primary-custom btn-warning-custom kitchen-action-btn"
+                                    style="font-size:12px;padding:5px 12px;"
+                                    th:data-id="${order.id}"
+                                    data-status="Preparing">
+                                🔥 Start
+                            </button>
+                            <button th:if="${order.status == 'Preparing'}"
+                                    class="btn-primary-custom kitchen-action-btn"
+                                    style="font-size:12px;padding:5px 12px;"
+                                    th:data-id="${order.id}"
+                                    data-status="Ready">
+                                ✅ Ready
+                            </button>
+                            <button th:if="${order.status == 'Ready'}"
+                                    class="btn-primary-custom btn-success-custom kitchen-action-btn"
+                                    style="font-size:12px;padding:5px 12px;"
+                                    th:data-id="${order.id}"
+                                    th:data-table-id="${order.tableId}"
+                                    data-status="Completed">
+                                🎉 Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+// Timers & Auto-refresh
+$(function() {
+    // CSRF Setup
+    const token = $("meta[name='_csrf']").attr("content");
+    const header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function(e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    });
+
+    // Initialize Order Timers
+    function updateOrderTimers() {
+        document.querySelectorAll('[id^="timer_"]').forEach(el => {
+            const createdStr = el.dataset.created;
+            if (!createdStr) return;
+            
+            const created = new Date(createdStr);
+            const diff = Math.floor((Date.now() - created.getTime()) / 1000);
+            
+            const m = Math.floor(Math.abs(diff) / 60).toString().padStart(2, '0');
+            const s = (Math.abs(diff) % 60).toString().padStart(2, '0');
+            el.textContent = (diff < 0 ? '-' : '') + m + ':' + s;
+            
+            // Color Logic: < 10m (Green), 10-20m (Yellow), > 20m (Red)
+            if (diff > 1200) {
+                el.style.color = '#dc3545'; // Red
+            } else if (diff > 600) {
+                el.style.color = '#ffc107'; // Yellow
+            } else {
+                el.style.color = '#28a745'; // Green
+            }
+        });
+    }
+
+    // Initialize Auto-refresh Countdown
+    let countdown = 10;
+    const countEl = document.getElementById('kitchen-countdown');
+    
+    function updateCountdown() {
+        if (countEl) {
+            countEl.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Refresh: ' + countdown + 's';
+        }
+        if (countdown <= 0) {
+            location.reload();
+        } else {
+            countdown--;
+        }
+    }
+
+    // Start everything immediately
+    updateOrderTimers();
+    updateCountdown();
+
+    // Set intervals
+    setInterval(updateOrderTimers, 1000);
+    setInterval(updateCountdown, 1000);
+});
+
+$(document).on('click', '.kitchen-action-btn', function() {
+    updateKitchenStatus(this.dataset.id, this.dataset.status, this.dataset.tableId);
+});
+
+function updateKitchenStatus(orderId, status, tableId) {
+    $.post('/kitchen/' + orderId + '/status', { status: status }, (data) => {
+        if (data.success) {
+            if (status === 'Completed' && tableId) {
+                $.post('/tables/' + tableId + '/status', { status: 'Available' });
+            }
+            location.reload();
+        }
+    });
+}
+</script>
+</body>
+</html>

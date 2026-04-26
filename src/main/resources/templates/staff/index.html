@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Staff — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <div th:if="${success}" class="alert-custom alert-success mb-3">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card purple"><div class="stat-card-icon"><i class="fas fa-user-tie"></i></div>
+                    <div class="stat-value" th:text="${totalEmployees}">0</div><div class="stat-label">Total Employees</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card green"><div class="stat-card-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-value" th:text="${activeEmployees}">0</div><div class="stat-label">Active</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card yellow"><div class="stat-card-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="stat-value" th:text="${totalShifts}">0</div><div class="stat-label">Recent Shifts</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalSalary,1,2)}">0</span></div>
+                    <div class="stat-label">Monthly Payroll</div></div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex gap-2">
+                <a href="/staff/payroll" class="btn-primary-custom btn-success-custom"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+                <a href="/attendance" class="btn-primary-custom btn-info-custom"><i class="fas fa-calendar-check"></i> Attendance</a>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addShiftModal">
+                    <i class="fas fa-clock"></i> Add Shift
+                </button>
+                <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                    <i class="fas fa-plus"></i> Add Employee
+                </button>
+            </div>
+        </div>
+
+        <!-- Staff Table -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-user-tie me-2" style="color:#6f42c1;"></i>Employee Directory</h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>EMPLOYEE</th><th>EMP #</th><th>POSITION</th><th>DEPARTMENT</th><th>PHONE</th><th>SALARY</th><th>STATUS</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s : ${staffList}">
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#28a745,#5cb85c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;"
+                                         th:text="${!#strings.isEmpty(s.name)} ? ${#strings.toUpperCase(#strings.substring(s.name,0,1))} : 'U'">A</div>
+                                    <div>
+                                        <div style="font-weight:700;" th:text="${s.name}">Name</div>
+                                        <div style="font-size:11px;color:#6c757d;" th:text="${s.email} ?: '—'">email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-size:12px;color:#6c757d;" th:text="${s.employeeNumber} ?: '—'">EMP-001</td>
+                            <td th:text="${s.position} ?: '—'">Position</td>
+                            <td th:text="${s.department} ?: '—'">Department</td>
+                            <td th:text="${s.phone} ?: '—'">-</td>
+                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(s.salary ?: 0,1,2)}">0.00</span></td>
+                            <td><span class="badge-status" th:text="${s.status}" th:classappend="${s.status == 'active'} ? ' badge-active' : ' badge-inactive'">active</span></td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <form th:action="@{/staff/delete/{id}(id=${s.id})}" method="post" style="display:inline;">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn-sm-action btn-sm-delete" onclick="return confirm('Delete?')"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(staffList)}">
+                            <td colspan="8" style="text-align:center;padding:30px;color:#6c757d;">No staff members found.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Shifts -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-calendar-day me-2" style="color:#6f42c1;"></i>Recent Shifts</h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>EMPLOYEE</th><th>DATE</th><th>START</th><th>END</th><th>TYPE</th></tr></thead>
+                    <tbody>
+                        <tr th:each="shift : ${recentShifts}">
+                            <td th:text="${shift.employeeName} ?: '—'">-</td>
+                            <td th:text="${shift.date}">-</td>
+                            <td th:text="${shift.startTime}">-</td>
+                            <td th:text="${shift.endTime}">-</td>
+                            <td><span class="badge-status badge-dinein" th:text="${shift.shiftType} ?: 'Day'">Day</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recentShifts)}">
+                            <td colspan="5" style="text-align:center;padding:20px;color:#6c757d;">No shifts recorded</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addStaffModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 style="font-weight:700;margin:0;">Add Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/staff/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label-custom">Full Name *</label>
+                            <input type="text" name="name" class="form-control-custom" required/></div>
+                        <div class="col-md-6"><label class="form-label-custom">Email</label>
+                            <input type="email" name="email" class="form-control-custom"/></div>
+                        <div class="col-md-6"><label class="form-label-custom">Phone</label>
+                            <input type="text" name="phone" class="form-control-custom"/></div>
+                        <div class="col-md-6"><label class="form-label-custom">Position</label>
+                            <select name="position" class="form-control-custom">
+                                <option>Waiter</option><option>Chef</option><option>Manager</option>
+                                <option>Cashier</option><option>Rider</option><option>Cleaner</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label-custom">Department</label>
+                            <select name="department" class="form-control-custom">
+                                <option>Kitchen</option><option>Service</option><option>Delivery</option>
+                                <option>Management</option><option>Finance</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label-custom">Monthly Salary</label>
+                            <input type="number" name="salary" class="form-control-custom" step="0.01"/></div>
+                        <div class="col-md-6"><label class="form-label-custom">Branch</label>
+                            <input type="text" name="branch" class="form-control-custom" value="Main Branch"/></div>
+                        <div class="col-md-6"><label class="form-label-custom">Join Date</label>
+                            <input type="date" name="joinDate" class="form-control-custom"/></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Save Employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Shift Modal -->
+<div class="modal fade" id="addShiftModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 style="font-weight:700;margin:0;">Add Shift</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/staff/shift/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label-custom">Employee *</label>
+                            <select name="employeeId" class="form-control-custom">
+                                <option th:each="s : ${staffList}" th:value="${s.id}" th:text="${s.name}">Employee</option>
+                            </select>
+                        </div>
+                        <div class="col-6"><label class="form-label-custom">Date</label>
+                            <input type="date" name="date" class="form-control-custom" required/></div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Shift Type</label>
+                            <select name="shiftType" class="form-control-custom">
+                                <option>Morning</option><option>Afternoon</option><option>Evening</option><option>Night</option>
+                            </select>
+                        </div>
+                        <div class="col-6"><label class="form-label-custom">Start Time</label>
+                            <input type="time" name="startTime" class="form-control-custom"/></div>
+                        <div class="col-6"><label class="form-label-custom">End Time</label>
+                            <input type="time" name="endTime" class="form-control-custom"/></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Save Shift</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

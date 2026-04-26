@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Inventory — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <div th:if="${success}" class="alert-custom alert-success mb-3">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div th:if="${alerts != null and !alerts.isEmpty()}" class="alert-custom alert-warning mb-4">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span><strong th:text="${alerts.size()}">0</strong> items are below minimum stock level!</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card purple"><div class="stat-card-icon"><i class="fas fa-boxes"></i></div>
+                    <div class="stat-value" th:text="${totalProducts}">0</div><div class="stat-label">Total Products</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card yellow"><div class="stat-card-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-value" th:text="${lowStockCount}">0</div><div class="stat-label">Low Stock Items</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card green"><div class="stat-card-icon"><i class="fas fa-truck"></i></div>
+                    <div class="stat-value" th:text="${activeSuppliers}">0</div><div class="stat-label">Active Suppliers</div></div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalValue,1,2)}">0</span></div>
+                    <div class="stat-label">Total Value</div></div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fas fa-plus"></i> Add Product
+            </button>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-boxes me-2" style="color:#6f42c1;"></i>Inventory Items</h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>PRODUCT</th><th>IN STOCK</th><th>UNIT</th><th>MIN</th><th>MAX</th><th>COST</th><th>TOTAL VALUE</th><th>LEVEL</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${inventory}">
+                            <td><strong th:text="${item.productName}">Product</strong></td>
+                            <td>
+                                <strong th:text="${item.quantity} ?: 0"
+                                        th:style="|${(item.quantity ?: 0) <= (item.minStock ?: 0)} ? 'color:#dc3545;' : 'color:#28a745;'|">0</strong>
+                            </td>
+                            <td th:text="${item.unit} ?: 'kg'">kg</td>
+                            <td style="color:#ffc107;" th:text="${item.minStock} ?: 0">0</td>
+                            <td style="color:#6c757d;" th:text="${item.maxStock} ?: 0">0</td>
+                            <td>$<span th:text="${item.costPrice} ?: 0">0</span></td>
+                            <td class="text-money">
+                                $<span th:text="${#numbers.formatDecimal((item.quantity ?: 0) * (item.costPrice ?: 0), 1, 2)}">0</span>
+                            </td>
+                            <td>
+                                <div style="width:80px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+                                    <div th:style="|width:${item.maxStock != null and item.maxStock > 0 ? (item.quantity * 100 / item.maxStock) : 0}%;height:100%;background:${(item.quantity ?: 0) <= (item.minStock ?: 0) ? '#dc3545' : '#28a745'};border-radius:4px;|"></div>
+                                </div>
+                                <div style="font-size:11px;margin-top:2px;"
+                                     th:style="|${(item.quantity ?: 0) <= (item.minStock ?: 0)} ? 'color:#dc3545;' : 'color:#28a745;'|"
+                                     th:text="${(item.quantity ?: 0) <= (item.minStock ?: 0)} ? 'Low!' : 'OK'">OK</div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button class="btn-sm-action btn-sm-success stock-add-btn" title="Add Stock"
+                                            th:data-id="${item.id}">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <form th:action="@{/inventory/delete/{id}(id=${item.id})}" method="post" style="display:inline;">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn-sm-action btn-sm-delete" onclick="return confirm('Delete?')"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(inventory)}">
+                            <td colspan="9" style="text-align:center;padding:30px;color:#6c757d;">No inventory items found.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 style="font-weight:700;margin:0;">Add Inventory Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/inventory/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="row g-3">
+                        <div class="col-12"><label class="form-label-custom">Product Name *</label>
+                            <input type="text" name="productName" class="form-control-custom" required/></div>
+                        <div class="col-6"><label class="form-label-custom">Quantity</label>
+                            <input type="number" name="quantity" class="form-control-custom" step="0.01" min="0"/></div>
+                        <div class="col-6"><label class="form-label-custom">Unit</label>
+                            <select name="unit" class="form-control-custom">
+                                <option>kg</option><option>liters</option><option>pieces</option><option>boxes</option><option>packets</option>
+                            </select>
+                        </div>
+                        <div class="col-6"><label class="form-label-custom">Min Stock</label>
+                            <input type="number" name="minStock" class="form-control-custom" step="0.01"/></div>
+                        <div class="col-6"><label class="form-label-custom">Max Stock</label>
+                            <input type="number" name="maxStock" class="form-control-custom" step="0.01"/></div>
+                        <div class="col-6"><label class="form-label-custom">Cost Price</label>
+                            <input type="number" name="costPrice" class="form-control-custom" step="0.01"/></div>
+                        <div class="col-6"><label class="form-label-custom">Branch</label>
+                            <input type="text" name="branch" class="form-control-custom" value="Main Branch"/></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Stock Modal -->
+<div class="modal fade" id="addStockModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 style="font-weight:700;margin:0;">Add Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" style="padding:20px;">
+                <label class="form-label-custom">Quantity to Add</label>
+                <input type="number" id="stockQty" class="form-control-custom" step="0.01" min="0.01" placeholder="0.00"/>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 20px;">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-primary-custom" onclick="submitAddStock()">Add Stock</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+let currentProductId = '';
+$(document).on('click', '.stock-add-btn', function() {
+    addStock(this.dataset.id);
+});
+function addStock(productId) {
+    currentProductId = productId;
+    document.getElementById('stockQty').value = '';
+    new bootstrap.Modal(document.getElementById('addStockModal')).show();
+}
+function submitAddStock() {
+    const qty = parseFloat(document.getElementById('stockQty').value);
+    if (!qty || qty <= 0) { alert('Please enter a valid quantity'); return; }
+    $.post('/inventory/' + currentProductId + '/add-stock', { quantity: qty }, (data) => {
+        if (data.success) { location.reload(); }
+    });
+}
+</script>
+</body>
+</html>

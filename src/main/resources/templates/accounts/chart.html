@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Chart of Accounts — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in">
+
+        <div th:if="${success}" class="alert-custom alert-success mb-3">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h4 style="font-weight:800;margin:0;">📒 Chart of Accounts</h4>
+                <p style="margin:0;color:#6c757d;font-size:13px;">Double-entry accounting ledger</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addAccountModal">
+                    <i class="fas fa-plus"></i> New Account
+                </button>
+                <button class="btn-primary-custom btn-info-custom" data-bs-toggle="modal" data-bs-target="#journalModal">
+                    <i class="fas fa-book-open"></i> Journal Entries
+                </button>
+            </div>
+        </div>
+
+        <!-- Type Filter -->
+        <div class="d-flex gap-2 mb-4 flex-wrap">
+            <a th:href="@{/accounts/chart}" th:classappend="${filterType == null} ? ' active' : ''" class="period-btn">All</a>
+            <a th:href="@{/accounts/chart(type='Asset')}" th:classappend="${filterType == 'Asset'} ? ' active' : ''" class="period-btn">Assets</a>
+            <a th:href="@{/accounts/chart(type='Liability')}" th:classappend="${filterType == 'Liability'} ? ' active' : ''" class="period-btn">Liabilities</a>
+            <a th:href="@{/accounts/chart(type='Equity')}" th:classappend="${filterType == 'Equity'} ? ' active' : ''" class="period-btn">Equity</a>
+            <a th:href="@{/accounts/chart(type='Revenue')}" th:classappend="${filterType == 'Revenue'} ? ' active' : ''" class="period-btn">Revenue</a>
+            <a th:href="@{/accounts/chart(type='Expense')}" th:classappend="${filterType == 'Expense'} ? ' active' : ''" class="period-btn">Expenses</a>
+        </div>
+
+        <!-- Grouped Accounts -->
+        <div th:each="entry : ${grouped}" class="content-card mb-4">
+            <div class="card-header-custom">
+                <h5>
+                    <span th:text="${entry.key == 'Asset'} ? '🏦' : (${entry.key == 'Liability'} ? '📋' : (${entry.key == 'Revenue'} ? '💰' : (${entry.key == 'Expense'} ? '💸' : '🏛️')))">📊</span>
+                    <span th:text="${entry.key}" class="ms-1">Type</span>
+                    <span style="background:#6f42c1;color:#fff;padding:2px 8px;border-radius:8px;font-size:11px;margin-left:8px;" th:text="${entry.value.size()}">0</span>
+                </h5>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>ACCT #</th><th>NAME</th><th>CATEGORY</th><th>OPENING BAL</th><th>TOTAL DEBIT</th><th>TOTAL CREDIT</th><th>CURRENT BAL</th><th>STATUS</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="acc : ${entry.value}">
+                            <td><strong style="color:#6f42c1;" th:text="${acc.accountNumber}">1001</strong></td>
+                            <td th:text="${acc.name}">Account Name</td>
+                            <td style="font-size:12px;color:#6c757d;" th:text="${acc.category}">Category</td>
+                            <td>$<span th:text="${#numbers.formatDecimal(acc.openingBalance ?: 0,1,2)}">0</span></td>
+                            <td style="color:#dc3545;">$<span th:text="${#numbers.formatDecimal(acc.totalDebit ?: 0,1,2)}">0</span></td>
+                            <td style="color:#28a745;">$<span th:text="${#numbers.formatDecimal(acc.totalCredit ?: 0,1,2)}">0</span></td>
+                            <td><strong class="text-money">$<span th:text="${#numbers.formatDecimal(acc.currentBalance ?: 0,1,2)}">0</span></strong></td>
+                            <td><span class="badge-status badge-active" th:text="${acc.status} ?: 'active'">active</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(entry.value)}">
+                            <td colspan="8" style="text-align:center;padding:16px;color:#6c757d;font-size:13px;">No accounts in this category</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Add Account Modal -->
+<div class="modal fade" id="addAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;"><h5 style="font-weight:700;margin:0;">Add Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form th:action="@{/accounts/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="row g-3">
+                        <div class="col-6"><label class="form-label-custom">Account Number</label>
+                            <input type="text" name="accountNumber" class="form-control-custom" required/></div>
+                        <div class="col-6"><label class="form-label-custom">Account Name</label>
+                            <input type="text" name="name" class="form-control-custom" required/></div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Type</label>
+                            <select name="type" class="form-control-custom">
+                                <option>Asset</option><option>Liability</option><option>Equity</option>
+                                <option>Revenue</option><option>Expense</option>
+                            </select>
+                        </div>
+                        <div class="col-6"><label class="form-label-custom">Category</label>
+                            <input type="text" name="category" class="form-control-custom"/></div>
+                        <div class="col-6"><label class="form-label-custom">Opening Balance</label>
+                            <input type="number" name="openingBalance" class="form-control-custom" step="0.01" value="0"/></div>
+                        <div class="col-6"><label class="form-label-custom">Current Balance</label>
+                            <input type="number" name="currentBalance" class="form-control-custom" step="0.01" value="0"/></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-custom">Save Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Journal Entries Modal -->
+<div class="modal fade" id="journalModal" tabindex="-1" style="--bs-modal-width:900px;">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header" style="padding:16px 20px;">
+                <h5 style="font-weight:700;margin:0;">📖 Journal Entries</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding:20px;max-height:500px;overflow-y:auto;">
+                <table class="table-custom">
+                    <thead><tr><th>DATE</th><th>DESCRIPTION</th><th>DEBIT ACCOUNT</th><th>CREDIT ACCOUNT</th><th>AMOUNT</th><th>TYPE</th></tr></thead>
+                    <tbody>
+                        <tr th:each="tx : ${transactions}">
+                            <td th:text="${tx.date}">-</td>
+                            <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" th:text="${tx.description}">-</td>
+                            <td style="color:#dc3545;font-size:12px;" th:text="${tx.debitAccountName}">-</td>
+                            <td style="color:#28a745;font-size:12px;" th:text="${tx.creditAccountName}">-</td>
+                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(tx.amount ?: 0,1,2)}">0</span></td>
+                            <td><span class="badge-status badge-dinein" th:text="${tx.type}">ORDER</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(transactions)}">
+                            <td colspan="6" style="text-align:center;padding:20px;color:#6c757d;">No journal entries yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

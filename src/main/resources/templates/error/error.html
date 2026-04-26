@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Error — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="page-content fade-in" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 65px);">
+        <div style="text-align:center;max-width:480px;padding:40px;">
+            <div style="font-size:80px;margin-bottom:16px;" th:text="${errorCode == '404'} ? '🔍' : (${errorCode == '403'} ? '🔒' : '⚡')">⚡</div>
+            <h1 style="font-size:72px;font-weight:900;color:#6f42c1;line-height:1;margin-bottom:8px;" th:text="${errorCode} ?: '500'">500</h1>
+            <h4 style="font-weight:700;margin-bottom:12px;" th:text="${errorTitle} ?: 'Something went wrong'">Error</h4>
+            <p style="color:#6c757d;line-height:1.7;margin-bottom:28px;" th:text="${errorMessage} ?: 'An unexpected error occurred. Please try again.'">Error message</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="/admin/dashboard" class="btn-primary-custom"><i class="fas fa-home"></i> Dashboard</a>
+                <button onclick="history.back()" class="btn-primary-custom btn-info-custom"><i class="fas fa-arrow-left"></i> Go Back</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
