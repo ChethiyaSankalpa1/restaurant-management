@@ -59,39 +59,37 @@
         <i class="fas fa-user-tie"></i> Staff
     </a>
 
-    <!-- FINANCE -->
-    <div class="sidebar-section">Finance</div>
+    <!-- FINANCE (Admin/Manager only) -->
+    <div class="sidebar-section" sec:authorize="hasAnyRole('ADMIN','MANAGER')">Finance</div>
     <a th:href="@{/expenses}" th:classappend="${activeMenu == 'expenses'} ? ' active' : ''"
-       class="nav-item-link">
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
         <i class="fas fa-file-invoice-dollar"></i> Expenses
     </a>
     <a th:href="@{/accounts/chart}" th:classappend="${activeMenu == 'accounts'} ? ' active' : ''"
-       class="nav-item-link">
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
         <i class="fas fa-book"></i> Chart of Accounts
     </a>
     <a th:href="@{/reports}" th:classappend="${activeMenu == 'reports'} ? ' active' : ''"
-       class="nav-item-link">
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
         <i class="fas fa-chart-bar"></i> Reports
     </a>
+    <a th:href="@{/staff/payroll}" th:classappend="${activeMenu == 'payroll'} ? ' active' : ''"
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+        <i class="fas fa-money-bill-wave"></i> Payroll
+    </a>
 
-    <!-- SETTINGS -->
-    <div class="sidebar-section">Settings</div>
+    <!-- SETTINGS (Admin/Manager only) -->
+    <div class="sidebar-section" sec:authorize="hasAnyRole('ADMIN','MANAGER')">Settings</div>
     <a th:href="@{/settings/content}" th:classappend="${activeMenu == 'settings'} ? ' active' : ''"
-       class="nav-item-link">
-        <i class="fas fa-cog"></i> Content
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
+        <i class="fas fa-cog"></i> Settings
     </a>
     <a th:href="@{/branches}" th:classappend="${activeMenu == 'branches'} ? ' active' : ''"
-       class="nav-item-link">
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
         <i class="fas fa-code-branch"></i> Branches
     </a>
-    <a th:href="@{/settings/permissions}" class="nav-item-link">
-        <i class="fas fa-shield-alt"></i> Permissions
-    </a>
-    <a th:href="@{/settings/modifiers}" class="nav-item-link">
-        <i class="fas fa-sliders-h"></i> Modifiers
-    </a>
     <a th:href="@{/settings/tax}" th:classappend="${activeMenu == 'tax'} ? ' active' : ''"
-       class="nav-item-link">
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
         <i class="fas fa-percent"></i> Tax Management
     </a>
 
@@ -101,15 +99,12 @@
        class="nav-item-link">
         <i class="fas fa-star"></i> Loyalty
     </a>
-    <a href="#" class="nav-item-link">
-        <i class="fas fa-comment-dots"></i> Reviews
-    </a>
     <a th:href="@{/inventory}" th:classappend="${activeMenu == 'inventory'} ? ' active' : ''"
        class="nav-item-link">
         <i class="fas fa-boxes"></i> Inventory
     </a>
     <a th:href="@{/suppliers}" th:classappend="${activeMenu == 'suppliers'} ? ' active' : ''"
-       class="nav-item-link">
+       class="nav-item-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')">
         <i class="fas fa-truck"></i> Suppliers
     </a>
     <a th:href="@{/attendance}" th:classappend="${activeMenu == 'attendance'} ? ' active' : ''"
@@ -117,19 +112,20 @@
         <i class="fas fa-calendar-check"></i> Attendance
     </a>
 
-    <!-- SYSTEM -->
-    <div class="sidebar-section">System</div>
-    <a href="#" class="nav-item-link">
-        <i class="fas fa-clipboard-list"></i> Audit Log
+    <!-- SYSTEM (Admin only) -->
+    <div class="sidebar-section" sec:authorize="hasRole('ADMIN')">System</div>
+    <a th:href="@{/admin/users}" th:classappend="${activeMenu == 'users'} ? ' active' : ''"
+       class="nav-item-link" sec:authorize="hasRole('ADMIN')">
+        <i class="fas fa-user-shield"></i> User Management
     </a>
-    <a href="#" class="nav-item-link">
-        <i class="fas fa-tools"></i> System Settings
+    <a th:href="@{/settings/permissions}" class="nav-item-link" sec:authorize="hasRole('ADMIN')">
+        <i class="fas fa-shield-alt"></i> Permissions
     </a>
 
     <!-- Footer -->
     <div class="sidebar-footer">
         <i class="fas fa-globe"></i>
-        <span>English</span>
+        <span sec:authentication="name">User</span>
         <span style="margin-left:auto;font-size:10px;opacity:.6;">v1.0.0</span>
     </div>
 </div>

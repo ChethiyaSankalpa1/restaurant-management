@@ -26,7 +26,10 @@ public class OrderService {
     public Order createOrder(Order order) {
         order.setOrderNumber("ORD-" + orderCounter.incrementAndGet());
         order.setStatus("Pending");
-        order.setPaymentStatus("Pending");
+        // If payment was already collected at POS, keep "Paid"; otherwise default to "Pending"
+        if (order.getPaymentStatus() == null || order.getPaymentStatus().isEmpty()) {
+            order.setPaymentStatus("Pending");
+        }
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
 
@@ -66,7 +69,10 @@ public class OrderService {
         order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
 
-        if ("Paid".equals(newStatus)) {
+        // Auto-mark payment as Paid when order is Completed
+        if ("Completed".equals(newStatus)) {
+            order.setPaymentStatus("Paid");
+        } else if ("Paid".equals(newStatus)) {
             order.setPaymentStatus("Paid");
         }
 

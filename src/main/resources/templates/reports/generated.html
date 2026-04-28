@@ -31,7 +31,7 @@
         <div class="row g-3 mb-4">
             <div class="col-6 col-xl-3">
                 <div class="stat-card green"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalSales ?: 0,1,2)}">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(totalSales ?: 0,1,2)}">0</span></div>
                     <div class="stat-label">Total Revenue</div></div>
             </div>
             <div class="col-6 col-xl-3">
@@ -41,12 +41,12 @@
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card yellow"><div class="stat-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalExpenses ?: 0,1,2)}">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(totalExpenses ?: 0,1,2)}">0</span></div>
                     <div class="stat-label">Total Expenses</div></div>
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-chart-pie"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(netProfit ?: 0,1,2)}">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(netProfit ?: 0,1,2)}">0</span></div>
                     <div class="stat-label">Net Profit</div></div>
             </div>
         </div>
@@ -63,8 +63,8 @@
                             <td th:text="${o.customerName} ?: 'Walk-in'">-</td>
                             <td th:text="${o.type}">-</td>
                             <td th:text="${o.items != null ? o.items.size() : 0}">0</td>
-                            <td>$<span th:text="${#numbers.formatDecimal(o.taxAmount ?: 0,1,2)}">0</span></td>
-                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(o.totalAmount ?: 0,1,2)}">0</span></td>
+                            <td><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(o.taxAmount ?: 0,1,2)}">0</span></td>
+                            <td class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(o.totalAmount ?: 0,1,2)}">0</span></td>
                             <td style="font-size:12px;color:#6c757d;" th:text="${#temporals.format(o.createdAt,'dd MMM HH:mm')} ?: '-'">-</td>
                         </tr>
                     </tbody>
@@ -83,7 +83,7 @@
                             <td th:text="${e.expenseNumber}">-</td>
                             <td th:text="${e.category}">-</td>
                             <td th:text="${e.vendor} ?: '—'">-</td>
-                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(e.amount ?: 0,1,2)}">0</span></td>
+                            <td class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(e.amount ?: 0,1,2)}">0</span></td>
                             <td th:text="${e.date}">-</td>
                             <td><span class="badge-status" th:text="${e.status}" th:classappend="${e.status == 'Approved'} ? ' badge-approved' : ' badge-pending'">-</span></td>
                         </tr>

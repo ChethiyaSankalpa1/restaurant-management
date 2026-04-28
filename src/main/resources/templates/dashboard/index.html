@@ -48,7 +48,7 @@
             <div class="col-xl-3 col-md-6">
                 <div class="stat-card green">
                     <div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-value">$<span th:text="${totalRevenue} ?: 0">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${totalRevenue} ?: 0">0</span></div>
                     <div class="stat-label">Total Revenue</div>
                     <div class="stat-change up"><i class="fas fa-arrow-up"></i> Completed orders</div>
                 </div>
@@ -64,7 +64,7 @@
             <div class="col-xl-3 col-md-6">
                 <div class="stat-card yellow">
                     <div class="stat-card-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-value">$<span th:text="${avgOrderValue} ?: 0">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${avgOrderValue} ?: 0">0</span></div>
                     <div class="stat-label">Avg Order Value</div>
                     <div class="stat-change up"><i class="fas fa-arrow-up"></i> Per order</div>
                 </div>
@@ -221,7 +221,7 @@
                                       th:classappend="${order.paymentStatus == 'Paid'} ? 'badge-paid' : 'badge-pending'"
                                       class="badge-status">Payment</span>
                             </td>
-                            <td class="text-money">$<span th:text="${order.totalAmount} ?: '0.00'">0.00</span></td>
+                            <td class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${order.totalAmount} ?: '0.00'">0.00</span></td>
                             <td style="font-size:12px;color:#6c757d;" th:text="${#temporals.format(order.createdAt, 'dd MMM HH:mm')} ?: '-'">Date</td>
                             <td>
                                 <a th:href="@{/orders/{id}(id=${order.id})}" class="btn-sm-action btn-sm-view">
@@ -253,7 +253,7 @@ new Chart(ctx, {
     data: {
         labels: salesLabels,
         datasets: [{
-            label: 'Revenue ($)',
+            label: 'Revenue (' + '[[${currencySymbol}]]' + ')',
             data: salesData,
             borderColor: '#6f42c1',
             backgroundColor: 'rgba(111,66,193,0.12)',

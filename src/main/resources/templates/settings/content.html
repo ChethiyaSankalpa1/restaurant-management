@@ -46,6 +46,64 @@
             </div>
         </div>
 
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert-custom alert-success mt-4">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+
+        <!-- Global Settings -->
+        <div class="content-card mt-4">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-globe me-2" style="color:#6f42c1;"></i>Global System Settings</h5>
+            </div>
+            <div class="card-body-custom">
+                <form th:action="@{/settings/save}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight:600;font-size:13px;color:#4a5568;">Currency</label>
+                            <select class="form-control-custom" name="currencyName" id="currencySelect" onchange="updateSymbol()">
+                                <option value="LKR" th:selected="${currencyName == 'LKR'}">🇱🇰 LKR - Sri Lankan Rupee</option>
+                                <option value="USD" th:selected="${currencyName == 'USD'}">🇺🇸 USD - US Dollar</option>
+                                <option value="EUR" th:selected="${currencyName == 'EUR'}">🇪🇺 EUR - Euro</option>
+                                <option value="GBP" th:selected="${currencyName == 'GBP'}">🇬🇧 GBP - British Pound</option>
+                                <option value="INR" th:selected="${currencyName == 'INR'}">🇮🇳 INR - Indian Rupee</option>
+                                <option value="AUD" th:selected="${currencyName == 'AUD'}">🇦🇺 AUD - Australian Dollar</option>
+                                <option value="JPY" th:selected="${currencyName == 'JPY'}">🇯🇵 JPY - Japanese Yen</option>
+                                <option value="CAD" th:selected="${currencyName == 'CAD'}">🇨🇦 CAD - Canadian Dollar</option>
+                                <option value="SGD" th:selected="${currencyName == 'SGD'}">🇸🇬 SGD - Singapore Dollar</option>
+                                <option value="AED" th:selected="${currencyName == 'AED'}">🇦🇪 AED - UAE Dirham</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight:600;font-size:13px;color:#4a5568;">Currency Symbol</label>
+                            <select class="form-control-custom" name="currencySymbol" id="symbolSelect">
+                                <option value="Rs." th:selected="${currencySymbol == 'Rs.'}">Rs. (Rupee)</option>
+                                <option value="$" th:selected="${currencySymbol == '$'}">$ (Dollar)</option>
+                                <option value="€" th:selected="${currencySymbol == '€'}">€ (Euro)</option>
+                                <option value="£" th:selected="${currencySymbol == '£'}">£ (Pound)</option>
+                                <option value="₹" th:selected="${currencySymbol == '₹'}">₹ (Indian Rupee)</option>
+                                <option value="A$" th:selected="${currencySymbol == 'A$'}">A$ (AUD)</option>
+                                <option value="¥" th:selected="${currencySymbol == '¥'}">¥ (Yen)</option>
+                                <option value="C$" th:selected="${currencySymbol == 'C$'}">C$ (CAD)</option>
+                                <option value="S$" th:selected="${currencySymbol == 'S$'}">S$ (SGD)</option>
+                                <option value="د.إ" th:selected="${currencySymbol == 'د.إ'}">د.إ (Dirham)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-3 text-end">
+                            <button type="submit" class="btn-primary-custom" style="padding:10px 20px;">Save Settings</button>
+                        </div>
+                    </div>
+                </form>
+                <script>
+                function updateSymbol() {
+                    const map = {LKR:'Rs.',USD:'$',EUR:'€',GBP:'£',INR:'₹',AUD:'A$',JPY:'¥',CAD:'C$',SGD:'S$',AED:'د.إ'};
+                    const sel = document.getElementById('currencySelect').value;
+                    if (map[sel]) document.getElementById('symbolSelect').value = map[sel];
+                }
+                </script>
+            </div>
+        </div>
+
         <!-- System Info -->
         <div class="content-card mt-4">
             <div class="card-header-custom">

@@ -46,11 +46,17 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/static/**").permitAll()
-                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-                .requestMatchers("/settings/**").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/reports/**").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/accounts/**").hasAnyRole("ADMIN", "MANAGER")
+                // Admin only
+                .requestMatchers("/admin/users/**").hasRole("ADMIN")
+                // Admin + Manager only (finance, settings, reports)
+                .requestMatchers("/settings/**", "/accounts/**", "/reports/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/payroll/**", "/staff/payroll/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/expenses/**", "/suppliers/**", "/branches/**").hasAnyRole("ADMIN", "MANAGER")
+                // Staff operations (dashboard, orders, POS, kitchen, tables, menu, customers, staff, riders)
+                .requestMatchers("/admin/dashboard/**", "/orders/**", "/pos/**", "/kitchen/**",
+                        "/tables/**", "/riders/**", "/menu/**", "/customers/**",
+                        "/staff/**", "/inventory/**", "/attendance/**",
+                        "/loyalty/**").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

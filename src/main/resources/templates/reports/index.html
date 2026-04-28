@@ -18,7 +18,7 @@
         <div class="row g-3 mb-4">
             <div class="col-6 col-xl-3">
                 <div class="stat-card purple"><div class="stat-card-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalSales ?: 0,1,2)}">0</span></div><div class="stat-label">Total Sales</div></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(totalSales ?: 0,1,2)}">0</span></div><div class="stat-label">Total Sales</div></div>
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-receipt"></i></div>
@@ -26,11 +26,11 @@
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card yellow"><div class="stat-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalExpenses ?: 0,1,2)}">0</span></div><div class="stat-label">Total Expenses</div></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(totalExpenses ?: 0,1,2)}">0</span></div><div class="stat-label">Total Expenses</div></div>
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card green"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(netProfit ?: 0,1,2)}">0</span></div><div class="stat-label">Net Profit</div></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(netProfit ?: 0,1,2)}">0</span></div><div class="stat-label">Net Profit</div></div>
             </div>
         </div>
 

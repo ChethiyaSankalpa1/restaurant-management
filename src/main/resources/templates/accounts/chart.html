@@ -62,10 +62,10 @@
                             <td><strong style="color:#6f42c1;" th:text="${acc.accountNumber}">1001</strong></td>
                             <td th:text="${acc.name}">Account Name</td>
                             <td style="font-size:12px;color:#6c757d;" th:text="${acc.category}">Category</td>
-                            <td>$<span th:text="${#numbers.formatDecimal(acc.openingBalance ?: 0,1,2)}">0</span></td>
-                            <td style="color:#dc3545;">$<span th:text="${#numbers.formatDecimal(acc.totalDebit ?: 0,1,2)}">0</span></td>
-                            <td style="color:#28a745;">$<span th:text="${#numbers.formatDecimal(acc.totalCredit ?: 0,1,2)}">0</span></td>
-                            <td><strong class="text-money">$<span th:text="${#numbers.formatDecimal(acc.currentBalance ?: 0,1,2)}">0</span></strong></td>
+                            <td><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(acc.openingBalance ?: 0,1,2)}">0</span></td>
+                            <td style="color:#dc3545;"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(acc.totalDebit ?: 0,1,2)}">0</span></td>
+                            <td style="color:#28a745;"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(acc.totalCredit ?: 0,1,2)}">0</span></td>
+                            <td><strong class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(acc.currentBalance ?: 0,1,2)}">0</span></strong></td>
                             <td><span class="badge-status badge-active" th:text="${acc.status} ?: 'active'">active</span></td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(entry.value)}">
@@ -134,7 +134,7 @@
                             <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" th:text="${tx.description}">-</td>
                             <td style="color:#dc3545;font-size:12px;" th:text="${tx.debitAccountName}">-</td>
                             <td style="color:#28a745;font-size:12px;" th:text="${tx.creditAccountName}">-</td>
-                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(tx.amount ?: 0,1,2)}">0</span></td>
+                            <td class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(tx.amount ?: 0,1,2)}">0</span></td>
                             <td><span class="badge-status badge-dinein" th:text="${tx.type}">ORDER</span></td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(transactions)}">

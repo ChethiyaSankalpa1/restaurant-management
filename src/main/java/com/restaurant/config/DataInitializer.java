@@ -33,6 +33,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ShiftRepository shiftRepository;
     private final CustomerRepository customerRepository;
     private final RiderRepository riderRepository;
+    private final SystemSettingRepository systemSettingRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.base-url:http://localhost:8080}")
@@ -61,6 +62,10 @@ public class DataInitializer implements CommandLineRunner {
             if (riderRepository.count() == 0) { log.info("Seeding riders..."); seedRiders(); }
             if (accountRepository.count() < 5) { log.info("Seeding chart of accounts..."); accountRepository.deleteAll(); seedChartOfAccounts(); }
             if (taxRepository.count() == 0) { log.info("Seeding taxes..."); seedTaxes(); }
+            if (systemSettingRepository.findByKey("currency_symbol").isEmpty()) {
+                log.info("Seeding default settings...");
+                seedSettings();
+            }
             log.info("Data check complete! users={}, menuItems={}, tables={}, categories={}",
                 userRepository.count(), menuItemRepository.count(),
                 tableRepository.count(), categoryRepository.count());
@@ -352,5 +357,11 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
             inventoryRepository.save(inv);
         }
+    }
+
+    private void seedSettings() {
+        systemSettingRepository.save(SystemSetting.builder().key("currency_symbol").value("Rs.").build());
+        systemSettingRepository.save(SystemSetting.builder().key("currency_name").value("LKR").build());
+        systemSettingRepository.save(SystemSetting.builder().key("restaurant_name").value("RestaurantPro").build());
     }
 }

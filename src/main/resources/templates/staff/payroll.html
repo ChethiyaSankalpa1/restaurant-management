@@ -34,7 +34,7 @@
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalAmount,1,2)}">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(totalAmount,1,2)}">0</span></div>
                     <div class="stat-label">Total Net Pay</div></div>
             </div>
         </div>
@@ -86,11 +86,11 @@
                                 <div style="font-size:11px;color:#6c757d;" th:text="${p.employeePosition} ?: ''">Position</div>
                             </td>
                             <td style="font-size:12px;" th:text="${p.month} + '/' + ${p.year}">01/2026</td>
-                            <td>$<span th:text="${#numbers.formatDecimal(p.basicSalary ?: 0,1,2)}">0</span></td>
-                            <td class="text-money">+$<span th:text="${#numbers.formatDecimal(p.allowances ?: 0,1,2)}">0</span></td>
-                            <td style="color:#dc3545;">-$<span th:text="${#numbers.formatDecimal(p.deductions ?: 0,1,2)}">0</span></td>
-                            <td>$<span th:text="${#numbers.formatDecimal(p.grossSalary ?: 0,1,2)}">0</span></td>
-                            <td><strong class="text-money">$<span th:text="${#numbers.formatDecimal(p.netPay ?: 0,1,2)}">0</span></strong></td>
+                            <td><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(p.basicSalary ?: 0,1,2)}">0</span></td>
+                            <td class="text-money">+<span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(p.allowances ?: 0,1,2)}">0</span></td>
+                            <td style="color:#dc3545;">-<span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(p.deductions ?: 0,1,2)}">0</span></td>
+                            <td><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(p.grossSalary ?: 0,1,2)}">0</span></td>
+                            <td><strong class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(p.netPay ?: 0,1,2)}">0</span></strong></td>
                             <td style="font-size:12px;">
                                 <span th:text="${p.presentDays} + '/' + ${p.workingDays} + ' days'">0/26</span>
                             </td>

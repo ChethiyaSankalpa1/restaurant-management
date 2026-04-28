@@ -34,7 +34,7 @@
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalSalary,1,2)}">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(totalSalary,1,2)}">0</span></div>
                     <div class="stat-label">Monthly Payroll</div></div>
             </div>
         </div>
@@ -80,7 +80,7 @@
                             <td th:text="${s.position} ?: '—'">Position</td>
                             <td th:text="${s.department} ?: '—'">Department</td>
                             <td th:text="${s.phone} ?: '—'">-</td>
-                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(s.salary ?: 0,1,2)}">0.00</span></td>
+                            <td class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(s.salary ?: 0,1,2)}">0.00</span></td>
                             <td><span class="badge-status" th:text="${s.status}" th:classappend="${s.status == 'active'} ? ' badge-active' : ' badge-inactive'">active</span></td>
                             <td>
                                 <div class="d-flex gap-1">

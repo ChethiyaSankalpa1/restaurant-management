@@ -55,7 +55,7 @@
                              class="menu-item-img"/>
                         <div class="item-info">
                             <div class="item-name" th:text="${item?.name ?: 'Unnamed'}">Item Name</div>
-                            <div class="item-price" th:text="${item?.price != null} ? |$${#numbers.formatDecimal(item.price, 1, 2)}| : '$0.00'">$0.00</div>
+                            <div class="item-price" th:text="${item?.price != null} ? |${currencySymbol}${#numbers.formatDecimal(item.price, 1, 2)}| : |${currencySymbol}0.00|">0.00</div>
                         </div>
                     </div>
                 </div>
@@ -130,20 +130,20 @@
                 <div style="background:#f8f9ff;border-radius:10px;padding:12px;margin-bottom:12px;">
                     <div class="d-flex justify-content-between mb-1">
                         <span style="font-size:13px;color:#6c757d;">Subtotal</span>
-                        <span style="font-size:13px;font-weight:600;">$<span id="subtotal">0.00</span></span>
+                        <span style="font-size:13px;font-weight:600;"><span th:text="${currencySymbol}"></span><span id="subtotal">0.00</span></span>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span style="font-size:13px;color:#6c757d;">Tax (10%)</span>
-                        <span style="font-size:13px;font-weight:600;">$<span id="taxAmount">0.00</span></span>
+                        <span style="font-size:13px;font-weight:600;"><span th:text="${currencySymbol}"></span><span id="taxAmount">0.00</span></span>
                     </div>
                     <div id="loyaltyRow" class="d-flex justify-content-between mb-1" style="display:none!important;">
                         <span style="font-size:13px;color:#28a745;">Loyalty Discount</span>
-                        <span style="font-size:13px;font-weight:600;color:#28a745;">-$<span id="loyaltyDiscount">0.00</span></span>
+                        <span style="font-size:13px;font-weight:600;color:#28a745;">-<span th:text="${currencySymbol}"></span><span id="loyaltyDiscount">0.00</span></span>
                     </div>
                     <hr style="margin:8px 0;border-color:#e2e8f0;"/>
                     <div class="d-flex justify-content-between">
                         <span style="font-size:15px;font-weight:800;">Total</span>
-                        <span style="font-size:18px;font-weight:800;color:#6f42c1;">$<span id="totalAmount">0.00</span></span>
+                        <span style="font-size:18px;font-weight:800;color:#6f42c1;"><span th:text="${currencySymbol}"></span><span id="totalAmount">0.00</span></span>
                     </div>
                 </div>
 
@@ -171,7 +171,7 @@
             </div>
             <div class="modal-body" style="padding:24px;">
                 <div style="text-align:center;margin-bottom:20px;">
-                    <div style="font-size:36px;font-weight:900;color:#6f42c1;">$<span id="modal-total">0.00</span></div>
+                    <div style="font-size:36px;font-weight:900;color:#6f42c1;"><span th:text="${currencySymbol}"></span><span id="modal-total">0.00</span></div>
                     <div style="font-size:13px;color:#6c757d;">Total Amount Due</div>
                 </div>
                 <div class="mb-4">
@@ -195,7 +195,7 @@
                     <label class="form-label-custom">Amount Tendered</label>
                     <input type="number" class="form-control-custom" id="cashTendered" placeholder="0.00" oninput="calcChange()"/>
                     <div style="margin-top:8px;padding:10px;background:#d4edda;border-radius:8px;display:none;" id="changeRow">
-                        <span style="font-size:13px;font-weight:700;color:#155724;">Change: $<span id="changeAmount">0.00</span></span>
+                        <span style="font-size:13px;font-weight:700;color:#155724;">Change: <span th:text="${currencySymbol}"></span><span id="changeAmount">0.00</span></span>
                     </div>
                 </div>
                 <input type="hidden" id="paymentMethod" value="Cash"/>
@@ -291,7 +291,7 @@ function renderCart() {
         html += '<div class="cart-item">' +
             '<div style="flex:1;min-width:0;">' +
                 '<div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + item.name + '</div>' +
-                '<div style="font-size:12px;color:#6f42c1;font-weight:700;">$' + item.price.toFixed(2) + '</div>' +
+                '<div style="font-size:12px;color:#6f42c1;font-weight:700;">[[${currencySymbol}]]' + item.price.toFixed(2) + '</div>' +
             '</div>' +
             '<div style="display:flex;align-items:center;gap:6px;">' +
                 '<button class="qty-btn" onclick="updateQty(' + idx + ', -1)">−</button>' +
@@ -386,6 +386,7 @@ function submitOrder() {
         taxAmount: parseFloat(tax.toFixed(2)),
         totalAmount: parseFloat((subtotal + tax).toFixed(2)),
         paymentMethod: paymentMethod,
+        paymentStatus: 'Paid',
         tableId: selectedTable.value || null,
         tableNumber: selectedTable.options[selectedTable.selectedIndex]?.text?.split(' ')[1] || null,
         waiterId: selectedWaiter.value || null,

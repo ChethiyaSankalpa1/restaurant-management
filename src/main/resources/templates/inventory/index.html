@@ -40,7 +40,7 @@
             </div>
             <div class="col-6 col-xl-3">
                 <div class="stat-card cyan"><div class="stat-card-icon"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(totalValue,1,2)}">0</span></div>
+                    <div class="stat-value"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(totalValue,1,2)}">0</span></div>
                     <div class="stat-label">Total Value</div></div>
             </div>
         </div>
@@ -71,9 +71,9 @@
                             <td th:text="${item.unit} ?: 'kg'">kg</td>
                             <td style="color:#ffc107;" th:text="${item.minStock} ?: 0">0</td>
                             <td style="color:#6c757d;" th:text="${item.maxStock} ?: 0">0</td>
-                            <td>$<span th:text="${item.costPrice} ?: 0">0</span></td>
+                            <td><span th:text="${currencySymbol}"></span><span th:text="${item.costPrice} ?: 0">0</span></td>
                             <td class="text-money">
-                                $<span th:text="${#numbers.formatDecimal((item.quantity ?: 0) * (item.costPrice ?: 0), 1, 2)}">0</span>
+                                <span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal((item.quantity ?: 0) * (item.costPrice ?: 0), 1, 2)}">0</span>
                             </td>
                             <td>
                                 <div style="width:80px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">

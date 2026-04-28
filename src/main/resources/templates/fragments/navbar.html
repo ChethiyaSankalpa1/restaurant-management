@@ -3,9 +3,11 @@
 <body>
 <!-- ========================== NAVBAR FRAGMENT ========================== -->
 <nav th:fragment="navbar" class="top-navbar">
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <div class="navbar-left">
-        <!-- Mobile toggle -->
-        <button class="btn-sm-action btn-sm-edit d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')">
+        <!-- Mobile hamburger -->
+        <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()">
             <i class="fas fa-bars"></i>
         </button>
         <div>
@@ -74,5 +76,17 @@
         </div>
     </div>
 </nav>
+
+<!-- Sidebar toggle script -->
+<script th:inline="javascript">
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('show');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+}
+</script>
 </body>
 </html>

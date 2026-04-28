@@ -7,32 +7,172 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .perm-toggle{position:relative;width:44px;height:24px;display:inline-block}
+        .perm-toggle input{opacity:0;width:0;height:0}
+        .perm-slider{position:absolute;cursor:pointer;inset:0;background:#e2e8f0;border-radius:24px;transition:all .3s}
+        .perm-slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:all .3s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+        .perm-toggle input:checked+.perm-slider{background:linear-gradient(135deg,#6f42c1,#a855f7)}
+        .perm-toggle input:checked+.perm-slider::before{transform:translateX(20px)}
+        .perm-toggle input:disabled+.perm-slider{opacity:.5;cursor:not-allowed}
+        .module-row{transition:background .2s}
+        .module-row:hover{background:#fafbff}
+        .module-icon{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;margin-right:10px;color:#fff}
+        .save-toast{position:fixed;bottom:24px;right:24px;background:#6f42c1;color:#fff;padding:12px 24px;border-radius:12px;font-weight:700;font-size:13px;box-shadow:0 8px 25px rgba(111,66,193,.4);display:none;z-index:9999}
+    </style>
 </head>
 <body>
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 <div class="main-content">
     <div th:replace="~{fragments/navbar :: navbar}"></div>
     <div class="page-content fade-in">
-        <h4 style="font-weight:800;margin-bottom:24px;">🔐 Role Permissions</h4>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h4 style="font-weight:800;margin:0;">🔐 Role Permissions</h4>
+                <p style="margin:0;color:#6c757d;font-size:13px;">Configure what each role can access. Admin always has full access.</p>
+            </div>
+            <button class="btn-primary-custom" id="saveBtn" onclick="saveAllPermissions()">
+                <i class="fas fa-save"></i> Save Permissions
+            </button>
+        </div>
+
+        <div class="content-card mb-4">
+            <div class="card-body-custom" style="padding:14px 20px;">
+                <div class="d-flex gap-4 flex-wrap" style="font-size:13px;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="background:linear-gradient(135deg,#6f42c1,#a855f7);width:12px;height:12px;border-radius:3px;display:inline-block;"></span>
+                        <strong>ADMIN</strong> — Full access (cannot be changed)
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="background:#17a2b8;width:12px;height:12px;border-radius:3px;display:inline-block;"></span>
+                        <strong>MANAGER</strong> — Configurable by Admin
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="background:#ffc107;width:12px;height:12px;border-radius:3px;display:inline-block;"></span>
+                        <strong>STAFF</strong> — Configurable by Admin
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="content-card">
-            <div class="card-body-custom">
-                <table class="table-custom">
-                    <thead><tr><th>MODULE</th><th>ADMIN</th><th>MANAGER</th><th>STAFF</th></tr></thead>
-                    <tbody>
-                        <tr th:each="row : ${ {'Dashboard','Orders','POS','Kitchen','Tables','Menu','Customers','Staff','Payroll','Inventory','Expenses','Accounts','Reports','Branches','Tax','Loyalty','Suppliers','Attendance','Riders'} }">
-                            <td><strong th:text="${row}">Module</strong></td>
-                            <td><span style="color:#28a745;font-size:16px;">✅</span></td>
-                            <td><span style="color:#28a745;font-size:16px;"
-                                      th:text="${row == 'Payroll' or row == 'Accounts' or row == 'Reports' or row == 'Branches' or row == 'Tax'} ? '✅' : '✅'">✅</span></td>
-                            <td><span th:style="|${row == 'Payroll' or row == 'Accounts' or row == 'Branches' or row == 'Tax' or row == 'Reports'} ? 'color:#dc3545;font-size:16px;' : 'color:#28a745;font-size:16px;'|"
-                                      th:text="${row == 'Payroll' or row == 'Accounts' or row == 'Branches' or row == 'Tax' or row == 'Reports'} ? '❌' : '✅'">✅</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="card-header-custom">
+                <h5><i class="fas fa-shield-alt me-2" style="color:#6f42c1;"></i>Module Access Control</h5>
+            </div>
+            <div class="card-body-custom" style="padding:0;">
+                <div style="overflow-x:auto;">
+                    <table class="table-custom" style="margin:0;">
+                        <thead>
+                            <tr>
+                                <th style="width:40%;padding-left:20px;">MODULE</th>
+                                <th style="text-align:center;width:20%;"><span style="background:linear-gradient(135deg,#6f42c1,#a855f7);color:#fff;padding:4px 12px;border-radius:6px;font-size:11px;">ADMIN</span></th>
+                                <th style="text-align:center;width:20%;"><span style="background:#17a2b8;color:#fff;padding:4px 12px;border-radius:6px;font-size:11px;">MANAGER</span></th>
+                                <th style="text-align:center;width:20%;"><span style="background:#ffc107;color:#000;padding:4px 12px;border-radius:6px;font-size:11px;">STAFF</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="permTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="save-toast" id="saveToast"><i class="fas fa-check-circle me-2"></i> Permissions saved!</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+var permData = /*[[${permissionsJson}]]*/ '{}';
+</script>
+<script>
+var modules = [
+    {name:'Dashboard',key:'dashboard',icon:'fas fa-chart-pie',color:'#6f42c1',desc:'Main dashboard & analytics'},
+    {name:'Orders',key:'orders',icon:'fas fa-receipt',color:'#17a2b8',desc:'Order management & tracking'},
+    {name:'POS',key:'pos',icon:'fas fa-cash-register',color:'#28a745',desc:'Point of sale terminal'},
+    {name:'Kitchen',key:'kitchen',icon:'fas fa-fire',color:'#ff6b35',desc:'Kitchen display system'},
+    {name:'Tables',key:'tables',icon:'fas fa-chair',color:'#ffc107',desc:'Table management'},
+    {name:'Menu',key:'menu',icon:'fas fa-utensils',color:'#e91e63',desc:'Menu items & categories'},
+    {name:'Customers',key:'customers',icon:'fas fa-users',color:'#2196f3',desc:'Customer management'},
+    {name:'Staff',key:'staff',icon:'fas fa-user-tie',color:'#9c27b0',desc:'Staff management'},
+    {name:'Riders',key:'riders',icon:'fas fa-motorcycle',color:'#795548',desc:'Delivery riders'},
+    {name:'Inventory',key:'inventory',icon:'fas fa-boxes',color:'#607d8b',desc:'Stock tracking'},
+    {name:'Attendance',key:'attendance',icon:'fas fa-calendar-check',color:'#4caf50',desc:'Attendance tracking'},
+    {name:'Loyalty',key:'loyalty',icon:'fas fa-star',color:'#ff9800',desc:'Loyalty program'},
+    {name:'Payroll',key:'payroll',icon:'fas fa-money-bill-wave',color:'#f44336',desc:'Salary management'},
+    {name:'Expenses',key:'expenses',icon:'fas fa-file-invoice-dollar',color:'#dc3545',desc:'Expense tracking'},
+    {name:'Accounts',key:'accounts',icon:'fas fa-book',color:'#3f51b5',desc:'Chart of accounts'},
+    {name:'Reports',key:'reports',icon:'fas fa-chart-bar',color:'#009688',desc:'Financial reports'},
+    {name:'Suppliers',key:'suppliers',icon:'fas fa-truck',color:'#8bc34a',desc:'Supplier management'},
+    {name:'Branches',key:'branches',icon:'fas fa-code-branch',color:'#673ab7',desc:'Branch management'},
+    {name:'Tax',key:'tax',icon:'fas fa-percent',color:'#cddc39',desc:'Tax configuration'},
+    {name:'Settings',key:'settings',icon:'fas fa-cog',color:'#455a64',desc:'System settings'},
+    {name:'User Management',key:'users',icon:'fas fa-user-shield',color:'#d32f2f',desc:'User accounts & roles'}
+];
+
+var staffRestricted = ['payroll','expenses','accounts','reports','suppliers','branches','tax','settings','users'];
+var adminOnly = ['users'];
+var perms = {};
+try { perms = typeof permData === 'string' ? JSON.parse(permData) : permData; } catch(e) { perms = {}; }
+
+function getDefault(role, key) {
+    if (role === 'MANAGER') return adminOnly.indexOf(key) === -1;
+    if (role === 'STAFF') return staffRestricted.indexOf(key) === -1;
+    return true;
+}
+
+function isChecked(role, key) {
+    var k = 'perm_' + role + '_' + key;
+    if (perms[k] !== undefined) return perms[k] === 'true';
+    return getDefault(role, key);
+}
+
+function buildTable() {
+    var tbody = document.getElementById('permTableBody');
+    var html = '';
+    for (var i = 0; i < modules.length; i++) {
+        var m = modules[i];
+        var mc = isChecked('MANAGER', m.key) ? ' checked' : '';
+        var sc = isChecked('STAFF', m.key) ? ' checked' : '';
+        html += '<tr class="module-row">' +
+            '<td style="padding-left:20px;"><div class="d-flex align-items-center">' +
+            '<div class="module-icon" style="background-color:' + m.color + '"><i class="' + m.icon + '"></i></div>' +
+            '<div><strong>' + m.name + '</strong><div style="font-size:11px;color:#6c757d;">' + m.desc + '</div></div>' +
+            '</div></td>' +
+            '<td style="text-align:center;"><label class="perm-toggle"><input type="checkbox" checked disabled/><span class="perm-slider"></span></label></td>' +
+            '<td style="text-align:center;"><label class="perm-toggle"><input type="checkbox" class="perm-cb" data-role="MANAGER" data-module="' + m.key + '"' + mc + '/><span class="perm-slider"></span></label></td>' +
+            '<td style="text-align:center;"><label class="perm-toggle"><input type="checkbox" class="perm-cb" data-role="STAFF" data-module="' + m.key + '"' + sc + '/><span class="perm-slider"></span></label></td>' +
+            '</tr>';
+    }
+    tbody.innerHTML = html;
+}
+
+var csrfToken = document.querySelector("meta[name='_csrf']").getAttribute("content");
+var csrfHeader = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+
+function saveAllPermissions() {
+    var data = {};
+    var cbs = document.querySelectorAll('.perm-cb');
+    for (var i = 0; i < cbs.length; i++) {
+        var cb = cbs[i];
+        data['perm_' + cb.getAttribute('data-role') + '_' + cb.getAttribute('data-module')] = cb.checked ? 'true' : 'false';
+    }
+    var headers = {'Content-Type':'application/json'};
+    headers[csrfHeader] = csrfToken;
+    fetch('/settings/permissions/save', {method:'POST', headers:headers, body:JSON.stringify(data)})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if(d.success){
+                var t=document.getElementById('saveToast');t.style.display='block';
+                setTimeout(function(){t.style.display='none';},2500);
+            } else { alert('Failed to save'); }
+        })
+        .catch(function(){alert('Error saving permissions');});
+}
+
+buildTable();
+</script>
 </body>
 </html>

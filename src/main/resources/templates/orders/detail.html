@@ -43,8 +43,8 @@
                                     <td th:text="${i.index + 1}">1</td>
                                     <td><strong th:text="${item.name}">Item</strong></td>
                                     <td th:text="${item.quantity}">1</td>
-                                    <td>$<span th:text="${item.price}">0.00</span></td>
-                                    <td class="text-money">$<span th:text="${item.subtotal}">0.00</span></td>
+                                    <td><span th:text="${currencySymbol}"></span><span th:text="${item.price}">0.00</span></td>
+                                    <td class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${item.subtotal}">0.00</span></td>
                                     <td><span class="badge-status badge-pending" th:text="${item.status} ?: 'Pending'">Pending</span></td>
                                 </tr>
                             </tbody>
@@ -55,19 +55,19 @@
                         <div style="max-width:280px;margin-left:auto;">
                             <div class="d-flex justify-content-between mb-2">
                                 <span style="color:#6c757d;">Subtotal</span>
-                                <span>$<span th:text="${order.items != null ? order.items.stream().mapToDouble(i -> i.subtotal ?: 0).sum() : 0}">0</span></span>
+                                <span><span th:text="${currencySymbol}"></span><span th:text="${order.items != null ? order.items.stream().mapToDouble(i -> i.subtotal ?: 0).sum() : 0}">0</span></span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span style="color:#6c757d;">Tax</span>
-                                <span>$<span th:text="${#numbers.formatDecimal(order.taxAmount ?: 0,1,2)}">0</span></span>
+                                <span><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(order.taxAmount ?: 0,1,2)}">0</span></span>
                             </div>
                             <div th:if="${order.loyaltyDiscount != null and order.loyaltyDiscount > 0}" class="d-flex justify-content-between mb-2">
                                 <span style="color:#28a745;">Loyalty Discount</span>
-                                <span style="color:#28a745;">-$<span th:text="${#numbers.formatDecimal(order.loyaltyDiscount,1,2)}">0</span></span>
+                                <span style="color:#28a745;">-<span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(order.loyaltyDiscount,1,2)}">0</span></span>
                             </div>
                             <div class="d-flex justify-content-between" style="font-size:17px;font-weight:800;padding-top:10px;border-top:1px solid #e2e8f0;">
                                 <span>Total</span>
-                                <span class="text-money">$<span th:text="${#numbers.formatDecimal(order.totalAmount ?: 0,1,2)}">0</span></span>
+                                <span class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(order.totalAmount ?: 0,1,2)}">0</span></span>
                             </div>
                         </div>
                     </div>

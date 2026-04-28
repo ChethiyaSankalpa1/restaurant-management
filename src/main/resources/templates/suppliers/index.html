@@ -75,7 +75,7 @@
                     <tbody>
                         <tr th:each="p : ${payments}">
                             <td th:text="${p.supplierName} ?: '—'">-</td>
-                            <td class="text-money">$<span th:text="${#numbers.formatDecimal(p.amount ?: 0,1,2)}">0</span></td>
+                            <td class="text-money"><span th:text="${currencySymbol}"></span><span th:text="${#numbers.formatDecimal(p.amount ?: 0,1,2)}">0</span></td>
                             <td th:text="${p.date}">-</td>
                             <td th:text="${p.paymentMethod} ?: 'Cash'">Cash</td>
                             <td><span class="badge-status badge-paid" th:text="${p.status} ?: 'Paid'">Paid</span></td>

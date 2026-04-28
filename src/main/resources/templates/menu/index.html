@@ -93,7 +93,7 @@
                             <div class="item-info">
                                 <div class="item-name" th:text="${item.name ?: 'Unnamed Item'}">Item</div>
                                 <div class="item-desc" th:text="${item.description ?: ''}">Desc</div>
-                                <div class="item-price" th:text="${item.price != null} ? |$${#numbers.formatDecimal(item.price, 1, 2)}| : '$0.00'">$0.00</div>
+                                <div class="item-price" th:text="${item.price != null} ? |${currencySymbol}${#numbers.formatDecimal(item.price, 1, 2)}| : |${currencySymbol}0.00|">0.00</div>
                                 <div class="item-footer">
                                     <span class="badge-status" 
                                           th:text="${item.available != null and item.available} ? 'Available' : 'Unavailable'"

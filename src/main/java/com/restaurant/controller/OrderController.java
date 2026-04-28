@@ -79,4 +79,11 @@ public class OrderController {
     public List<Order> getOrdersApi() {
         return orderService.getAllOrders();
     }
+
+    @PostMapping("/{id}/pay")
+    public String markAsPaid(@PathVariable String id, RedirectAttributes ra) {
+        orderService.updateStatus(id, "Paid", "system");
+        ra.addFlashAttribute("success", "Order marked as paid!");
+        return "redirect:/orders";
+    }
 }
