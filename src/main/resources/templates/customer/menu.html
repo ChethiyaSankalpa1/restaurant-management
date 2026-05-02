@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Menu — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body class="gradient-bg">
+    <div th:replace="~{fragments/customer-navbar :: navbar}"></div>
+
+    <div class="container my-4">
+        <!-- Hero Section -->
+        <div class="glass-card" style="padding:50px 40px;margin-bottom:35px;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-50%;right:-10%;width:300px;height:300px;background:radial-gradient(circle, rgba(168,85,247,0.4) 0%, rgba(255,255,255,0) 70%);border-radius:50%;"></div>
+            <div style="position:absolute;bottom:-50%;left:-10%;width:300px;height:300px;background:radial-gradient(circle, rgba(111,66,193,0.4) 0%, rgba(255,255,255,0) 70%);border-radius:50%;"></div>
+            <h1 class="premium-gradient-text" style="font-weight:900;margin-bottom:12px;font-size:38px;letter-spacing:-1px;position:relative;z-index:1;">Hungry? Order Now!</h1>
+            <p style="color:var(--text-muted);font-size:16px;max-width:550px;position:relative;z-index:1;">Explore our delicious menu and get your favorite meals delivered fresh to your door or ready for pickup.</p>
+        </div>
+
+        <!-- Categories -->
+        <div class="d-flex gap-2 overflow-auto mb-4 pb-2" style="scrollbar-width:none;">
+            <a th:href="@{/customer/menu}" 
+               th:classappend="${activeCategory == 'all'} ? 'active' : ''"
+               class="category-filter-btn" style="text-decoration:none;color:var(--text-dark);">
+               All Items
+            </a>
+            <a th:each="cat : ${categories}" 
+               th:href="@{/customer/menu(categoryId=${cat.id})}"
+               th:classappend="${activeCategory == cat.id} ? 'active' : ''"
+               class="category-filter-btn" style="text-decoration:none;color:var(--text-dark);"
+               th:text="${cat.name}">Category</a>
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="row g-4 fade-in">
+            <div th:each="item : ${menuItems}" th:if="${item != null and (item.available == null or item.available)}" class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                <div class="glass-card hover-scale h-100" style="display:flex;flex-direction:column;border:none;">
+                    <div style="padding:12px 12px 0;"><img th:src="${item.imageUrl ?: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300'}" th:alt="${item.name ?: 'Item'}" style="height:180px;width:100%;border-radius:14px;object-fit:cover;"/></div>
+                    <div class="item-info" style="flex:1;display:flex;flex-direction:column;padding:20px;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="item-name mb-0" style="font-size:16px;font-weight:800;" th:text="${item.name ?: 'Unnamed Item'}">Item Name</h6>
+                            <div class="item-price" style="font-size:18px;font-weight:900;color:var(--primary);" th:text="${item.price != null} ? |${currencySymbol}${#numbers.formatDecimal(item.price, 1, 2)}| : |${currencySymbol}0.00|">$0.00</div>
+                        </div>
+                        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;flex:1;line-height:1.6;" th:text="${item.description ?: ''}">Description goes here</p>
+                        
+                        <button class="btn-premium w-100" 
+                                style="font-size:14px;padding:12px;"
+                                th:onclick="addToCart([[${item.id}]], [[${item.name}]], [[${item.price}]], [[${item.imageUrl}]])">
+                            <i class="fas fa-cart-plus me-2"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div th:if="${menuItems == null or #lists.isEmpty(menuItems)}" class="col-12 text-center py-5">
+                <i class="fas fa-utensils fa-3x mb-3" style="color:#d1b3e0;"></i>
+                <h5 style="color:var(--text-muted);font-weight:600;">No items found in this category.</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+        <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius:12px;border:none;box-shadow:0 8px 25px rgba(0,0,0,.15);">
+            <div class="toast-body d-flex align-items-center gap-2" style="background:#28a745;color:#fff;border-radius:12px;padding:12px 16px;font-weight:600;font-size:14px;">
+                <i class="fas fa-check-circle"></i> <span id="toastMessage">Item added to cart!</span>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+function addToCart(id, name, price, image) {
+    let cart = JSON.parse(localStorage.getItem('customerCart')) || [];
+    let existingItem = cart.find(item => item.menuItemId === id);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            menuItemId: id,
+            name: name,
+            price: price,
+            image: image,
+            quantity: 1,
+            notes: ""
+        });
+    }
+    
+    localStorage.setItem('customerCart', JSON.stringify(cart));
+    
+    // Update navbar badge
+    if(typeof updateCartBadge === 'function') updateCartBadge();
+    
+    // Show toast
+    const toastMessage = document.getElementById('toastMessage');
+    toastMessage.textContent = name + ' added to cart!';
+    const toast = new bootstrap.Toast(document.getElementById('cartToast'));
+    toast.show();
+}
+
+// Fallback images
+document.querySelectorAll('img').forEach(img => {
+    img.addEventListener('error', function() {
+        this.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300';
+    });
+});
+</script>
+</body>
+</html>

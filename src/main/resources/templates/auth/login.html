@@ -86,20 +86,29 @@
                 </button>
             </form>
 
+            <div class="text-center mt-4 mb-2">
+                <span style="font-size:14px;color:#6c757d;">New customer? </span>
+                <a href="/customer/register" style="font-size:14px;color:#6f42c1;font-weight:700;text-decoration:none;">Create an account</a>
+            </div>
+
             <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e2e8f0;">
                 <p style="font-size:12px;color:#6c757d;text-align:center;margin-bottom:12px;font-weight:600;">DEMO CREDENTIALS</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-                    <button onclick="fillCredentials('admin@restaurant.com','admin123')"
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <button type="button" onclick="fillCredentials('admin@restaurant.com','admin123')"
                         style="background:#f3e8ff;color:#6f42c1;border:1px solid #d8b4fe;border-radius:8px;padding:8px 6px;font-size:11px;font-weight:700;cursor:pointer;">
                         👑 Admin
                     </button>
-                    <button onclick="fillCredentials('manager@restaurant.com','manager123')"
+                    <button type="button" onclick="fillCredentials('manager@restaurant.com','manager123')"
                         style="background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:8px;padding:8px 6px;font-size:11px;font-weight:700;cursor:pointer;">
                         🏢 Manager
                     </button>
-                    <button onclick="fillCredentials('staff@restaurant.com','staff123')"
+                    <button type="button" onclick="fillCredentials('staff@restaurant.com','staff123')"
                         style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;border-radius:8px;padding:8px 6px;font-size:11px;font-weight:700;cursor:pointer;">
                         👷 Staff
+                    </button>
+                    <button type="button" onclick="fillCredentials('joe@gmail.com','customer123')"
+                        style="background:#ffedd5;color:#9a3412;border:1px solid #fdba74;border-radius:8px;padding:8px 6px;font-size:11px;font-weight:700;cursor:pointer;">
+                        🛍️ Customer
                     </button>
                 </div>
             </div>

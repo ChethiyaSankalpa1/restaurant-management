@@ -113,7 +113,7 @@
                     <!-- Footer -->
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
                         <div style="font-size:13px;font-weight:700;color:#28a745;">
-                            $<span th:text="${order.totalAmount} ?: '0.00'">0.00</span>
+                            <span th:text="${currencySymbol}">Rs</span><span th:text="${order.totalAmount} ?: '0.00'">0.00</span>
                         </div>
                         <div style="display:flex;gap:6px;">
                             <button class="btn-sm-action btn-sm-view" title="Add Notes"><i class="fas fa-sticky-note"></i></button>

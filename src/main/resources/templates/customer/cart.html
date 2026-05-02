@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Your Cart — RestaurantPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body class="gradient-bg">
+    <div th:replace="~{fragments/customer-navbar :: navbar}"></div>
+
+    <div class="container my-4">
+        <h4 style="font-weight:800;color:var(--text-dark);margin-bottom:24px;">Shopping Cart</h4>
+
+        <div class="row g-4 fade-in">
+            <div class="col-lg-8">
+                <div class="glass-card" style="border:none;">
+                    <div class="card-header-custom" style="background:transparent;border-bottom:1px solid rgba(0,0,0,0.05);padding:24px;">
+                        <h5 class="mb-0" style="font-weight:800;font-size:18px;"><i class="fas fa-shopping-bag me-2 premium-gradient-text"></i>Items</h5>
+                    </div>
+                    <div class="card-body-custom" id="cartItemsContainer" style="padding:24px;">
+                        <!-- Cart items will be injected here via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="glass-card position-sticky hover-scale" style="top: 85px;border:none;">
+                    <div class="card-header-custom" style="background:transparent;border-bottom:1px solid rgba(0,0,0,0.05);padding:24px;">
+                        <h5 class="mb-0" style="font-weight:800;font-size:18px;"><i class="fas fa-receipt me-2 premium-gradient-text"></i>Order Summary</h5>
+                    </div>
+                    <div class="card-body-custom" style="padding:24px;">
+                        <div class="d-flex justify-content-between mb-2" style="font-size:14px;color:var(--text-muted);">
+                            <span>Subtotal</span>
+                            <span id="subtotalAmount">[[${currencySymbol}]]0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3" style="font-size:14px;color:var(--text-muted);">
+                            <span>Taxes (10%)</span>
+                            <span id="taxAmount">[[${currencySymbol}]]0.00</span>
+                        </div>
+                        <hr style="border-color:var(--border);"/>
+                        <div class="d-flex justify-content-between mb-4" style="font-size:18px;font-weight:800;color:var(--text-dark);">
+                            <span>Total</span>
+                            <span id="totalAmount" style="color:var(--primary);">[[${currencySymbol}]]0.00</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-custom">Payment Method</label>
+                            <select id="paymentMethod" class="form-control-custom">
+                                <option value="Cash">Cash on Delivery</option>
+                                <option value="Card">Card on Delivery</option>
+                            </select>
+                        </div>
+                        
+                        <div sec:authorize="isAnonymous()">
+                            <a href="/login" class="btn-premium w-100 justify-content-center py-3">
+                                Login to Checkout
+                            </a>
+                        </div>
+                        <div sec:authorize="isAuthenticated()">
+                            <button id="checkoutBtn" class="btn-premium w-100 justify-content-center py-3" onclick="processCheckout()">
+                                Place Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+const currencySymbol = /*[[${currencySymbol}]]*/ '$';
+
+function renderCart() {
+    let cart = JSON.parse(localStorage.getItem('customerCart')) || [];
+    let container = document.getElementById('cartItemsContainer');
+    
+    if (cart.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-3x mb-3" style="color:#d1b3e0;"></i>
+                <h6 style="color:var(--text-muted);font-weight:600;">Your cart is empty</h6>
+                <a href="/customer/menu" class="btn-primary-custom mt-3">Browse Menu</a>
+            </div>
+        `;
+        document.getElementById('checkoutBtn').disabled = true;
+        updateSummary(0);
+        return;
+    }
+    
+    if(document.getElementById('checkoutBtn')) {
+        document.getElementById('checkoutBtn').disabled = false;
+    }
+
+    let html = '';
+    let subtotal = 0;
+    
+    cart.forEach((item, index) => {
+        subtotal += (item.price * item.quantity);
+        html += `
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3 ${index < cart.length-1 ? 'border-bottom' : ''}">
+                <img src="${item.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300'}" style="width:70px;height:70px;border-radius:10px;object-fit:cover;"/>
+                <div class="flex-grow-1">
+                    <div style="font-weight:700;font-size:14px;color:var(--text-dark);">${item.name}</div>
+                    <div style="color:var(--primary);font-weight:800;font-size:14px;">${currencySymbol}${(item.price).toFixed(2)}</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                    <span style="width:20px;text-align:center;font-weight:700;font-size:14px;">${item.quantity}</span>
+                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                </div>
+                <button class="btn-sm-action btn-sm-delete ms-2" onclick="removeItem(${index})"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    updateSummary(subtotal);
+}
+
+function updateQty(index, change) {
+    let cart = JSON.parse(localStorage.getItem('customerCart')) || [];
+    if (cart[index]) {
+        cart[index].quantity += change;
+        if (cart[index].quantity <= 0) {
+            cart.splice(index, 1);
+        }
+        localStorage.setItem('customerCart', JSON.stringify(cart));
+        renderCart();
+        if(typeof updateCartBadge === 'function') updateCartBadge();
+    }
+}
+
+function removeItem(index) {
+    let cart = JSON.parse(localStorage.getItem('customerCart')) || [];
+    cart.splice(index, 1);
+    localStorage.setItem('customerCart', JSON.stringify(cart));
+    renderCart();
+    if(typeof updateCartBadge === 'function') updateCartBadge();
+}
+
+function updateSummary(subtotal) {
+    let tax = subtotal * 0.1;
+    let total = subtotal + tax;
+    
+    document.getElementById('subtotalAmount').innerText = currencySymbol + subtotal.toFixed(2);
+    document.getElementById('taxAmount').innerText = currencySymbol + tax.toFixed(2);
+    document.getElementById('totalAmount').innerText = currencySymbol + total.toFixed(2);
+}
+
+async function processCheckout() {
+    let cart = JSON.parse(localStorage.getItem('customerCart')) || [];
+    if(cart.length === 0) return;
+    
+    const btn = document.getElementById('checkoutBtn');
+    btn.innerHTML = '<span class="spinner-custom me-2" style="width:16px;height:16px;border-width:2px;border-top-color:#fff;"></span> Processing...';
+    btn.disabled = true;
+
+    const token = document.querySelector("meta[name='_csrf']").getAttribute("content");
+    const header = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+    const paymentMethod = document.getElementById('paymentMethod').value;
+
+    const payload = {
+        items: cart,
+        paymentMethod: paymentMethod
+    };
+
+    try {
+        const response = await fetch('/api/customer/checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [header]: token
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            localStorage.removeItem('customerCart');
+            window.location.href = '/customer/orders?success=true';
+        } else {
+            alert('Failed to place order. Please try again.');
+            btn.innerHTML = 'Place Order';
+            btn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        btn.innerHTML = 'Place Order';
+        btn.disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', renderCart);
+</script>
+</body>
+</html>

@@ -5,6 +5,8 @@ import com.restaurant.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +22,7 @@ public class MenuService {
         log.info("Fetched {} total menu items", items.size());
         return items; 
     }
+    @Cacheable("menuItems")
     public List<MenuItem> getAvailableItems() { 
         var all = menuItemRepository.findAll();
         var available = all.stream()
@@ -30,12 +33,14 @@ public class MenuService {
     }
     public List<MenuItem> getByCategory(String categoryId) { return menuItemRepository.findByCategoryId(categoryId); }
     public Optional<MenuItem> findById(String id) { return menuItemRepository.findById(id); }
+    @CacheEvict(value = "menuItems", allEntries = true)
     public MenuItem save(MenuItem item) {
         if (item.getCategoryId() != null) {
             categoryRepository.findById(item.getCategoryId()).ifPresent(c -> item.setCategoryName(c.getName()));
         }
         return menuItemRepository.save(item);
     }
+    @CacheEvict(value = "menuItems", allEntries = true)
     public void delete(String id) { menuItemRepository.deleteById(id); }
     public List<Category> getAllCategories() { return categoryRepository.findAll(); }
     public Optional<Category> findCategoryById(String id) { return categoryRepository.findById(id); }

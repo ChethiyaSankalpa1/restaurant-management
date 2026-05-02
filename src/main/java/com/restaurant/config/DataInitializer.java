@@ -53,6 +53,20 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Checking and seeding missing data...");
             if (branchRepository.count() == 0) { log.info("Seeding branches..."); seedBranches(); }
             if (userCount == 0) { log.info("Seeding users..."); seedUsers(); }
+            
+            if (userRepository.findByEmail("joe@gmail.com").isEmpty()) {
+                log.info("Seeding customer demo user...");
+                User customer = User.builder()
+                    .name("Regular Joe")
+                    .email("joe@gmail.com")
+                    .password(passwordEncoder.encode("customer123"))
+                    .role("CUSTOMER")
+                    .branch("Main Branch")
+                    .status("active")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+                userRepository.save(customer);
+            }
             if (tableCount < 5) { log.info("Seeding tables..."); tableRepository.deleteAll(); seedTables(); }
             if (inventoryRepository.count() < 5) { log.info("Seeding inventory..."); inventoryRepository.deleteAll(); seedInventory(); }
             if (categoryCount < 5) { log.info("Seeding categories..."); categoryRepository.deleteAll(); seedCategories(); }
@@ -117,7 +131,17 @@ public class DataInitializer implements CommandLineRunner {
             .createdAt(LocalDateTime.now())
             .build();
 
-        userRepository.saveAll(List.of(admin, manager, staff));
+        User customer = User.builder()
+            .name("Regular Joe")
+            .email("joe@gmail.com")
+            .password(passwordEncoder.encode("customer123"))
+            .role("CUSTOMER")
+            .branch("Main Branch")
+            .status("active")
+            .createdAt(LocalDateTime.now())
+            .build();
+
+        userRepository.saveAll(List.of(admin, manager, staff, customer));
     }
 
     private void seedTables() {

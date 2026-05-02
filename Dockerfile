@@ -10,4 +10,5 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Use -Xmx384m to stay safely within 512MB RAM, and UseContainerSupport for better docker awareness
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-Xmx384m", "-Xms256m", "-jar", "app.jar"]

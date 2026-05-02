@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<!-- ========================== CUSTOMER NAVBAR FRAGMENT ========================== -->
+<nav th:fragment="navbar" class="top-navbar glass-navbar" style="justify-content:space-between; border-bottom: none;">
+    <div class="navbar-left">
+        <a href="/customer/menu" class="text-decoration-none" style="display:flex;align-items:center;gap:12px;">
+            <div class="sidebar-brand-icon" style="width:40px;height:40px;font-size:18px;box-shadow:0 4px 15px rgba(111,66,193,.3);">🍽️</div>
+            <h5 class="page-title mb-0 premium-gradient-text" style="font-weight:800;font-size:20px;letter-spacing:-0.5px;" th:text="${restaurantName ?: 'RestaurantPro'}">RestaurantPro</h5>
+        </a>
+    </div>
+    <div class="navbar-right d-flex align-items-center gap-3">
+        <a href="/customer/menu" class="nav-item-link" style="color:var(--text-dark);font-weight:700;font-size:14px;"><i class="fas fa-utensils"></i> Menu</a>
+        <a href="/customer/orders" class="nav-item-link" style="color:var(--text-dark);font-weight:700;font-size:14px;" sec:authorize="isAuthenticated()"><i class="fas fa-receipt"></i> Orders</a>
+        
+        <a href="/customer/cart" class="navbar-icon-btn" title="Cart" style="position:relative;">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="badge-dot" id="cart-badge" style="display:none;background:var(--danger);width:16px;height:16px;font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;top:-4px;right:-4px;">0</span>
+        </a>
+
+        <!-- User Dropdown (Authenticated) -->
+        <div class="dropdown" sec:authorize="isAuthenticated()">
+            <div class="user-avatar dropdown-toggle" data-bs-toggle="dropdown" style="cursor:pointer;width:36px;height:36px;">
+                <span sec:authentication="name" style="font-size:11px;">U</span>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px;box-shadow:0 8px 25px rgba(0,0,0,.12);border:none;">
+                <li class="px-3 py-2 border-bottom">
+                    <div style="font-size:13px;font-weight:700;" sec:authentication="name">User</div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form th:action="@{/logout}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="dropdown-item py-2 text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Login / Register (Unauthenticated) -->
+        <div sec:authorize="isAnonymous()" class="d-flex gap-2">
+            <a href="/login" class="btn-primary-custom" style="background:#fff;color:var(--primary);border:1.5px solid var(--primary);">Login</a>
+            <a href="/customer/register" class="btn-primary-custom">Register</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+// Logic to update cart badge count
+function updateCartBadge() {
+    let cart = JSON.parse(localStorage.getItem('customerCart')) || [];
+    let badge = document.getElementById('cart-badge');
+    if(cart.length > 0) {
+        badge.style.display = 'flex';
+        badge.innerText = cart.length;
+    } else {
+        badge.style.display = 'none';
+    }
+}
+document.addEventListener('DOMContentLoaded', updateCartBadge);
+</script>
+</body>
+</html>

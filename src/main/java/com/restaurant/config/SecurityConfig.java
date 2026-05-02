@@ -41,28 +41,30 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CustomAuthenticationSuccessHandler successHandler) throws Exception {
         http
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/static/**").permitAll()
+                .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/static/**", "/customer/register", "/customer/menu").permitAll()
                 // Admin only
                 .requestMatchers("/admin/users/**").hasRole("ADMIN")
                 // Admin + Manager only (finance, settings, reports)
                 .requestMatchers("/settings/**", "/accounts/**", "/reports/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/payroll/**", "/staff/payroll/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/expenses/**", "/suppliers/**", "/branches/**").hasAnyRole("ADMIN", "MANAGER")
+                // Customer operations
+                .requestMatchers("/customer/cart", "/customer/checkout", "/customer/orders").hasRole("CUSTOMER")
                 // Staff operations (dashboard, orders, POS, kitchen, tables, menu, customers, staff, riders)
                 .requestMatchers("/admin/dashboard/**", "/orders/**", "/pos/**", "/kitchen/**",
                         "/tables/**", "/riders/**", "/menu/**", "/customers/**",
                         "/staff/**", "/inventory/**", "/attendance/**",
-                        "/loyalty/**").authenticated()
+                        "/loyalty/**").hasAnyRole("ADMIN", "MANAGER", "STAFF")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/admin/dashboard", true)
+                .successHandler(successHandler)
                 .failureUrl("/login?error=true")
                 .usernameParameter("email")
                 .passwordParameter("password")
