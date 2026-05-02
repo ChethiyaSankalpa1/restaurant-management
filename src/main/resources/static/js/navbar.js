@@ -11,3 +11,15 @@ function closeSidebar() {
     if (sidebar) sidebar.classList.remove('show');
     if (overlay) overlay.classList.remove('show');
 }
+
+// Attach event listeners after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('hamburgerBtn');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (hamburger) {
+        hamburger.addEventListener('click', toggleSidebar);
+    }
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+    }
+});
